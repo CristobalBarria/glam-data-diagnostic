@@ -362,9 +362,7 @@ Cochez toutes les options pertinentes :
 <textarea rows="6" cols="80" name="q2_2" style="width:100%; max-width:800px; padding:8px; font-size:1em;" placeholder="Votre texte ici..."></textarea>
 
 ---
-
 ### Pag.6
-
 ---
 
 # 3. Systèmes et modèles de gestion des données
@@ -582,9 +580,7 @@ Cochez toutes les options que vous reconnaissez ou estimez compatibles avec votr
 </form>
 
 ---
-
-### PAG.7
-
+### Pag.7
 ---
 
 # 4. Recensement des entités
@@ -679,7 +675,7 @@ Veuillez répondre à cette question en vous concentrant sur les entités de vot
   - Les options de la colonne “Système(s) de gestion” dépendent des choix sélectionnés à la question 3.1.
 
 ---
-# PAG.8
+### Pag.8
 ---
 # 5 Recensement des attributs
 
@@ -808,8 +804,9 @@ Par « attribut », nous entendons toute information ou propriété qui décrit 
   "Vocabulaire contrôlé"
 
 \]
-
-
+---
+### Pag.9
+---
 # 6 Recensement des doublons
 
 ## 6.1 Recensement des doublons dans les entités
@@ -868,9 +865,9 @@ Sont considérés comme doublons tous les enregistrements représentant la même
 </form>
 
 * Les options de la colonne “Entités/Tables” dépendent des choix sélectionnés dans la colonne « Entité / Table » de la question 4.1.
-
-
-
+---
+### Pag.10
+---
 # 7 Gestion des incertitudes
 
 ## 7.1 Expression des incertitudes dans les attributs
@@ -994,6 +991,9 @@ Sont considérées comme exprimant une incertitude toutes les expressions indiqu
   "Autre : \_\_\_\_\_\_\_\_\_\_\_"  
   \]
 
+---
+### Pag.11
+---
 # 8. Gestion des ambiguïtés
 
 ## 8.1 Ambiguïtés dans les valeurs d’attributs à multiples entrées (cardinalité multiple)
@@ -1426,8 +1426,9 @@ Pour chaque combinaison d’attributs que vous avez indiquée comme faisant part
   "Autres : \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_"
 
 \]
-
-
+---
+### Pag.12
+---
 # 9 État de normalisation des données
 
 ## 9.1 Attributs de type « Date »
@@ -2228,8 +2229,9 @@ Pour chaque attribut que vous avez indiqué comme type d'attribut « Vocabulaire
   "Autre :\_\_\_\_\_\_\_\_\_\_\_\_"
 
 \]
-
-
+---
+### Pag.13
+---
 # 10 Cycle de vie
 
 ## 10.1 Périodicité de mise à jour des attributs
@@ -2376,8 +2378,9 @@ Pour chaque attribut identifié comme identifiant ou lien, indiquez sa durabilit
   "Autre :\_\_\_\_\_\_\_\_\_\_\_\_"
 
 \]
-
-
+---
+### Pag.14
+---
 # 11 Droits et licences
 
 * Question "type": "matrixdynamic".  
@@ -2460,8 +2463,9 @@ Cette question vise à identifier, pour chaque attribut du jeu de données, les 
   "Autre :\_\_\_\_\_\_\_\_\_\_\_\_"
 
 \]
-
-
+---
+### Pag.15
+---
 # 12 Évaluation de la publiabilité
 
 * Question "type": "matrixdynamic".  
@@ -2557,7 +2561,9 @@ Cette question vise à recueillir, pour chaque attribut du jeu de données, votr
   "Autre :\_\_\_\_\_\_\_\_\_\_\_\_"
 
 \]
-
+---
+### Pag.16
+---
 # Livraison des résultats de l’enquête
 
 Les résultats de l’enquête seront fournis sous la forme de quatre fichiers CSV : l’un contenant les informations générales de contact et sur la collection, un deuxième regroupant les données relatives aux entités identifiées, un troisième présentant les informations concernant les attributs identifiés, et un quatrième rassemblant les réponses concernant les relations entre les groupes d’attributs.
