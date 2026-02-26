@@ -41,8 +41,8 @@ about:
 
 ### thesis/
 
-**plan.md** : Master’s thesis structure, detailing sections on objectives, methodology, data analysis, and conclusions.
+**plan.md** : Master’s thesis structure, detailing sections.
 
 ### survey/
 
-**survey_texte.md** : Text of the questions and user introduction of the survey
+**survey_texte.md** : Text-only version of the survey questions and user introduction
