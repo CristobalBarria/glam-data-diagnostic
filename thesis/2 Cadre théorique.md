@@ -1,4 +1,4 @@
-# 2- Cadre théorique
+# 2 Cadre théorique
 
 # 2.1 Brève histoire de la publication au format ouvert des bases de données muséales
 
