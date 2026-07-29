@@ -1,0 +1,2540 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Diagnostic des données patrimoniales GLAM</title>
+  <meta name="description" content="Questionnaire de diagnostic des pratiques de gestion et de curation des données patrimoniales au sein des institutions GLAM, en vue de leur intégration dans une plateforme de données interconnectées.">
+  <meta property="og:title" content="Diagnostic des données patrimoniales GLAM">
+  <meta property="og:description" content="Questionnaire de diagnostic des pratiques de gestion et de curation des données patrimoniales au sein des institutions GLAM, en vue de leur intégration dans une plateforme de données interconnectées.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://cristobalbarria.github.io/glam-data-diagnostic/">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Diagnostic des données patrimoniales GLAM">
+  <meta name="twitter:description" content="Questionnaire de diagnostic des pratiques de gestion et de curation des données patrimoniales au sein des institutions GLAM, en vue de leur intégration dans une plateforme de données interconnectées.">
+  <link href="https://unpkg.com/survey-jquery/survey.min.css" rel="stylesheet"/>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://unpkg.com/survey-jquery/survey.jquery.min.js"></script>
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+
+ <style>
+    /* Oculta la barra de título en todas las páginas excepto la primera */
+    .sv_page:not(:first-child) .sv-header {
+        display: none;
+    }
+
+    /* Evita que las celdas de las tablas se expandan con valores largos */
+    .sv_matrix, .sv-matrix {
+        table-layout: fixed;
+        width: 100%;
+    }
+    .sv_matrix td, .sv-matrix td {
+        overflow: hidden;
+        word-break: break-word;
+    }
+    .sv_matrix td select, .sv-matrix td select,
+    .sv_matrix td input[type="text"], .sv-matrix td input[type="text"],
+    .sv_matrix td input[type="number"], .sv-matrix td input[type="number"] {
+        width: 100%;
+        box-sizing: border-box;
+        max-width: 100%;
+    }
+    /* ── Bouton Sauvegarder ──────────────────────────── */
+    #save-wrap {
+        display: none; text-align: center; padding: 8px 0 16px;
+    }
+    #save-btn {
+        background: none; color: #666; border: 1px solid #bbb; border-radius: 6px;
+        padding: 6px 18px; font-size: 12px; cursor: pointer;
+        transition: background .2s, color .2s;
+    }
+    #save-btn:hover { background: #f0f0f0; color: #333; }
+    #save-toast {
+        display: inline-block; margin-left: 10px;
+        color: #27ae60; font-size: 12px;
+        opacity: 0; transition: opacity .3s;
+    }
+    #save-toast.show { opacity: 1; }
+    #resume-banner {
+        display: none; background: #f0f6ff; border: 1px solid #b0c4de;
+        border-radius: 8px; padding: 14px 20px; margin: 16px auto; max-width: 600px;
+        text-align: center; font-size: 13px; color: #333;
+    }
+    #resume-banner button {
+        margin: 8px 6px 0; padding: 6px 16px; border-radius: 6px;
+        border: none; cursor: pointer; font-size: 13px;
+    }
+    #resume-yes { background: #2b7fff; color: #fff; }
+    #resume-yes:hover { background: #1a5fd4; }
+    #resume-no  { background: #eee; color: #555; }
+    #resume-no:hover  { background: #ddd; }
+    /* ── ⓘ Column info popup ─────────────────────────── */
+    .col-info-btn {
+        display: inline-flex !important; align-items: center; justify-content: center;
+        width: 14px !important; height: 14px !important; min-width: 14px !important;
+        border-radius: 50% !important;
+        background: #2b7fff !important; color: #fff !important;
+        font-size: 9px !important; font-style: italic !important;
+        font-family: Georgia, serif !important;
+        cursor: pointer; margin-left: 5px;
+        vertical-align: middle; align-self: center;
+        border: none !important; padding: 0 !important; line-height: 14px !important;
+        flex-shrink: 0; overflow: hidden;
+        opacity: 0.65;
+        box-shadow: 0 1px 3px rgba(43,127,255,0.35);
+        transition: opacity 0.15s, background-color 0.15s;
+    }
+    .col-info-btn:hover {
+        opacity: 1 !important;
+        background: #1a6de0 !important;
+        box-shadow: 0 1px 5px rgba(43,127,255,0.55);
+    }
+    #col-info-popup {
+        display: none; position: fixed;
+        background: #fff; border: 1px solid #b0c4de; border-radius: 6px;
+        padding: 12px 16px; font-size: 12px; color: #333; max-width: 520px; max-height: 420px; overflow-y: auto;
+        box-shadow: 0 3px 12px rgba(0,0,0,.2); z-index: 9999; line-height: 1.7;
+    }
+    #col-info-popup.visible { display: block; }
+    /* Masquer la barre de navigation standard sur la page du glossaire */
+    .hide-intro-nav .sv-footer,
+    .hide-intro-nav .panel-footer,
+    .hide-intro-nav [class*="sv-footer"],
+    .hide-intro-nav [class*="sv-action-bar"] { display: none !important; }
+
+    /* ── Page d'accueil ──────────────────────────────── */
+    .cover-wrap {
+        max-width: 760px; margin: 0 auto; padding: 4px 4px 16px;
+        font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+        color: #2c3e50; line-height: 1.65;
+    }
+    .cover-title { font-size: 26px; font-weight: 800; color: #1a2b3c; margin: 0 0 18px; line-height: 1.35; }
+    .cover-lead { font-size: 15px; color: #4a5568; margin: 0 0 30px; }
+    .cover-section { margin-bottom: 30px; }
+    .cover-section h3 {
+        font-size: 17px; color: #1a2b3c; margin: 0 0 10px;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .cover-section > p { font-size: 14.5px; color: #445; margin: 0 0 10px; }
+    .cover-topics { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-top: 12px; }
+    .cover-topic {
+        background: #f5f8fd; border: 1px solid #e2e9f5; border-radius: 8px;
+        padding: 11px 14px; font-size: 13.5px; display: flex; gap: 9px; align-items: center;
+    }
+    .cover-note {
+        background: #fff8e6; border: 1px solid #ffe6a6; border-radius: 8px;
+        padding: 12px 16px; font-size: 13.5px; color: #7a5c00; margin-bottom: 30px;
+    }
+    .cover-divider { border: none; border-top: 1px solid #e5e9f0; margin: 0 0 30px; }
+    .cover-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-top: 14px; }
+    .cover-card {
+        background: #fff; border: 1px solid #e2e9f5; border-radius: 10px;
+        padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    }
+    .cover-card .ic { font-size: 21px; display: block; margin-bottom: 8px; }
+    .cover-card h4 { margin: 0 0 6px; font-size: 14px; color: #1a2b3c; }
+    .cover-card p { margin: 0; font-size: 13px; color: #556; line-height: 1.55; }
+    .cover-highlight {
+        background: linear-gradient(135deg, #eef5ff, #f7fbff); border: 1px solid #cfe0fb;
+        border-radius: 12px; padding: 20px 22px 22px; margin-top: 12px;
+    }
+    .cover-highlight > p { font-size: 14px; color: #375; margin: 0 0 6px; color: #34506e; }
+    .cover-highlight-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 12px; }
+    .cover-highlight .cover-card { background: #fff; }
+    .cover-contact { text-align: center; font-size: 13.5px; color: #556; margin-top: 4px; }
+    .cover-contact a { color: #2b7fff; }
+    .cover-cta-wrap { text-align: center; margin-top: 34px; padding-bottom: 8px; }
+    .cover-cta {
+        background: #27ae60; color: #fff; border: none; padding: 16px 52px; border-radius: 8px;
+        font-size: 17px; font-weight: 700; cursor: pointer; letter-spacing: .5px;
+        box-shadow: 0 4px 14px rgba(39,174,96,0.35); transition: background .2s, transform .15s;
+    }
+    .cover-cta:hover { background: #219a52; transform: translateY(-1px); }
+
+    /* ── Titres et intros des sections du questionnaire ──────────────── */
+    .q-title {
+        font-size: 20px; font-weight: 800; color: #1a2b3c;
+        margin: 0 0 22px;
+    }
+    .q-subtitle {
+        font-size: 16.5px; font-weight: 700; color: #1a2b3c;
+        margin: 22px 0 8px; padding-left: 10px; border-left: 3px solid #2b7fff;
+    }
+    .q-text { font-size: 14px; color: #445; line-height: 1.6; margin: 0 0 10px; max-width: 760px; }
+    .q-text:last-child { margin-bottom: 0; }
+    .q-list { margin: 6px 0 10px; padding-left: 22px; font-size: 14px; color: #445; line-height: 1.7; max-width: 760px; }
+    /* Les blocs de titre/intro n'ont pas besoin du fond gris zébré appliqué par défaut à chaque ligne de question */
+    .sv_row:has(.q-title, .q-subtitle, .q-text, .q-list) {
+        background-color: transparent !important;
+    }
+ </style>
+</head>
+<body>
+
+<div id="surveyContainer"></div>
+<div id="resume-banner">
+    <strong>Une progression sauvegardée a été trouvée.</strong><br>
+    Souhaitez-vous reprendre là où vous vous étiez arrêté ?<br>
+    <button id="resume-yes">Reprendre</button>
+    <button id="resume-no">Recommencer depuis le début</button>
+</div>
+<div id="save-wrap"><button id="save-btn">Sauvegarder</button><span id="save-toast">✓ Sauvegardé</span></div>
+
+<script>
+var surveyJSON = {
+    "locale": "fr",
+    "showQuestionNumbers": "off",
+    "showPageTitles": false,
+    "nextText": "Suivant",
+    "prevText": "Précédent",
+    "completeText": "Terminer",
+    "startSurveyText": "Commencer",
+    "showPrevButton": true,
+    "completedHtml": "<div style='text-align:center;padding:48px 24px;font-family:Arial,sans-serif;'><h2 style='color:#2c3e50;margin-bottom:16px;'>Merci d'avoir répondu au questionnaire !</h2><p style='color:#555;font-size:15px;margin-bottom:8px;'>Vos réponses ont bien été enregistrées.</p><p style='color:#555;font-size:15px;margin-bottom:32px;'>Rendez-vous sur la page précédente pour télécharger vos fichiers CSV et consulter la visualisation de votre diagnostic.</p><button onclick='backToRecap()' style='background:#2c3e50;color:#fff;border:none;padding:13px 36px;border-radius:6px;font-size:15px;font-weight:bold;cursor:pointer;'>← Retour au récapitulatif</button></div>",
+    "pages": [
+        {
+            "name": "page_cover",
+            "title": "Page d'accueil",
+            "elements": [
+            {
+            "type": "html",
+            "name": "cover",
+            "html": "<div class='cover-wrap'><h1 class='cover-title'>Questionnaire de diagnostic des données patrimoniales pour leur agrégation dans la plateforme fédérée de la Ville de Genève</h1><p class='cover-lead'>Nous vous remercions de prendre le temps de participer à ce questionnaire, destiné aux institutions patrimoniales de la Ville de Genève.</p><div class='cover-section'><h3><span class='ic'>🎯</span> Pourquoi ce questionnaire</h3><p>Ce questionnaire permet d'établir un diagnostic de l'état de vos données patrimoniales, en vue de préparer leur intégration dans la plateforme fédérée des collections patrimoniales de la Ville de Genève, qui facilitera le croisement et la mise en relation des informations entre les différentes collections.</p><p>Vos réponses serviront également à adapter cet outil aux besoins spécifiques de chaque institution, et à évaluer quels jeux de données peuvent être inclus dans la plateforme.</p></div><div class='cover-section'><h3><span class='ic'>🔍</span> Ce que ce questionnaire va explorer</h3><div class='cover-topics'><div class='cover-topic'><span class='ic'>🗄️</span><span>Systèmes et modèles de gestion des données</span></div><div class='cover-topic'><span class='ic'>🧩</span><span>Structure des données</span></div><div class='cover-topic'><span class='ic'>🔀</span><span>Présence de doublons et d'ambiguïtés, et gestion des incertitudes</span></div><div class='cover-topic'><span class='ic'>📚</span><span>Niveau de normalisation, utilisation d'identifiants et de vocabulaires</span></div><div class='cover-topic'><span class='ic'>⚖️</span><span>Pratiques de mise à jour, stabilité des identifiants, droits et licences</span></div><div class='cover-topic'><span class='ic'>🔐</span><span>Prise en compte des données sensibles et des stratégies déontologiques</span></div></div></div><div class='cover-note'>ℹ️ Ce questionnaire se remplit séparément pour chaque <strong>jeu de données</strong> de votre institution (voir la définition à la question 2).</div><hr class='cover-divider'><div class='cover-section'><h3>Bon à savoir avant de commencer</h3><div class='cover-cards'><div class='cover-card'><span class='ic'>⏱️</span><h4>Durée</h4><p>Variable selon la complexité de vos données. Vous pouvez sauvegarder votre progression à tout moment et la reprendre plus tard.</p></div><div class='cover-card'><span class='ic'>🤝</span><h4>Modalité recommandée</h4><p>À remplir avec l'assistance d'une personne de référence, chargée de guider les répondants dans la compréhension des concepts et la complétion des questions.</p></div><div class='cover-card'><span class='ic'>🔒</span><h4>Confidentialité</h4><p>Toutes vos réponses seront traitées de façon strictement confidentielle.</p></div></div></div><div class='cover-section'><h3><span class='ic'>🎁</span> Ce que vous obtiendrez</h3><div class='cover-highlight'><p>À la fin du questionnaire, vous pourrez télécharger le diagnostic complet de votre jeu de données et consulter une visualisation interactive de ses résultats. Il ne s'agit pas d'un score de qualité, mais d'un diagnostic brut, directement exploitable pour vos décisions de curation et de modélisation.</p><div class='cover-highlight-grid'><div class='cover-card'><span class='ic'>📄</span><h4>4 fichiers CSV</h4><p>Entités, attributs, groupes d'attributs et vue d'ensemble de la structure de votre jeu de données.</p></div><div class='cover-card'><span class='ic'>📊</span><h4>Visualisation interactive</h4><p>Identifiez en un coup d'œil les points forts et les lacunes de votre curation, et évaluez quelles données sont prêtes à être publiées.</p></div></div></div></div><p class='cover-contact'>Une question, une précision ? Écrivez-nous à <a href='mailto:cristobal.barria@geneve.ch'>cristobal.barria@geneve.ch</a></p><div class='cover-cta-wrap'><button onclick='survey.nextPage()' class='cover-cta'>Commençons ! →</button></div></div>"
+            }
+            ]
+        },
+        {
+            "name": "page_questionsg1",
+            "elements": [
+                {
+                    "type": "html",
+                    "name": "title_g1",
+                    "html": "<h2 class='q-title'>1. Informations sur le répondant</h2>"
+                },
+                {
+                    "type": "html",
+                    "name": "label_g1a",
+                    "html": "<h3 class='q-subtitle'>1.1.- Nom de l'institution</h3>"
+                },
+                {
+                    "type": "text",
+                    "name": "question1g1",
+                    "titleLocation": "hidden"
+                },
+                {
+                    "type": "html",
+                    "name": "label_g1b",
+                    "html": "<h3 class='q-subtitle'>1.2.- Adresse e-mail</h3>"
+                },
+                {
+                    "type": "text",
+                    "name": "question2g1",
+                    "titleLocation": "hidden",
+                    "inputType": "email"
+                },
+                {
+                    "type": "html",
+                    "name": "label_g1c",
+                    "html": "<h3 class='q-subtitle'>1.3.- Personne de contact</h3>"
+                },
+                {
+                    "type": "text",
+                    "name": "question3g1",
+                    "titleLocation": "hidden"
+                }
+            ]
+        },
+        {
+            "name": "page_questionsg2",
+            "elements": [
+                {
+                    "type": "html",
+                    "name": "title_g2",
+                    "html": "<h2 class='q-title'>2. Thématiques du jeu de données</h2>"
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g2_jeudedonnees",
+                    "html": "<h3 class='q-subtitle'>Qu'est-ce qu'un jeu de données ?</h3><p class='q-text'>Ce questionnaire se remplit séparément pour chaque <strong>jeu de données</strong> de votre institution.</p><p class='q-text'>Un jeu de données est un ensemble de données où au moins un attribut relie deux entités entre elles — par exemple, l'attribut « Auteur » d'une <em>Œuvre</em> qui la relie à une <em>Personne</em>.</p><p class='q-text'>Ainsi, plusieurs entités liées entre elles (<em>Œuvres</em>, <em>Auteurs</em>, <em>Expositions</em>...) forment un seul jeu de données. À l'inverse, deux ensembles sans aucune relation entre eux (par exemple une collection d'œuvres et une photothèque indépendante) sont deux jeux de données distincts.</p>"
+                },
+                {
+                    "type": "html",
+                    "name": "cover",
+                    "html": "<h3 class='q-subtitle'>2.1.- Quel(s) est/sont le(s) domaine(s) thématique(s) principal(aux) du jeu de données ?</h3><p class='q-text'>Cochez toutes les options pertinentes.</p>"
+                },
+                {
+                    "type": "checkbox",
+                    "name": "question1g2",
+                    "titleLocation": "hidden",
+                    "choices": [
+                        "Histoire de l'art",
+                        "Archéologie",
+                        "Ethnographie / Anthropologie",
+                        "Histoire sociale et politique",
+                        "Sciences naturelles (botanique, zoologie, géologie, etc.)",
+                        "Sciences exactes ou techniques",
+                        "Patrimoine industriel",
+                        "Musique / Arts du spectacle",
+                        "Littérature",
+                        "Religion / Histoire ecclésiastique",
+                        "Histoire locale / Patrimoine régional",
+                        "Histoire des sciences et de la technologie",
+                        "Patrimoine immatériel"
+                    ],
+                    "showOtherItem": true
+                },
+                {
+                    "type": "html",
+                    "name": "cover",
+                    "html": "<h3 class='q-subtitle'>2.2.- (Optionnel) Souhaitez-vous décrire brièvement la nature ou la spécialisation du jeu de données ?</h3>"
+                },
+                {
+                    "type": "comment",
+                    "name": "question2g2",
+                    "titleLocation": "hidden"
+                }
+            ]
+        },
+        {
+            "name": "page_questionsg3",
+            "elements": [
+                {
+                    "type": "html",
+                    "name": "title_g3",
+                    "html": "<h2 class='q-title'>3. Modèles et systèmes de gestion</h2>"
+                },
+                {
+                    "type": "html",
+                    "name": "cover",
+                    "html": "<h3 class='q-subtitle'>3.1.- Quel(s) système(s) de gestion utilisez-vous pour organiser les métadonnées de votre jeu de données ?</h3><p class='q-text'>Cochez toutes les options pertinentes.</p>"
+                },
+                {
+                    "type": "checkbox",
+                    "name": "question1g3",
+                    "titleLocation": "hidden",
+                    "choices": [
+                        "Adlib / Axiell Collections",
+                        "Alma (Ex Libris)",
+                        "ArchivesSpace",
+                        "Art Galleria",
+                        "Aucun actuellement",
+                        "BiblioMaker",
+                        "Calm",
+                        "CollectionsIndex+",
+                        "CollectiveAccess",
+                        "EMu (Electronic Museum)",
+                        "Evergreen",
+                        "Feuilles de calcul (par exemple Excel, Google Sheets)",
+                        "FileMaker",
+                        "Flora",
+                        "Fotoware",
+                        "Koha",
+                        "Ligeo",
+                        "Micromusée",
+                        "MuseumPlus",
+                        "Omeka / Omeka S",
+                        "PastPerfect",
+                        "Specify",
+                        "Système interne / développé en interne",
+                        "Tellico",
+                        "TMS (The Museum System)",
+                        "Viridian",
+                        "Archivematica / AtoM (Access to Memory)"
+                    ],
+                    "showOtherItem": true
+                },
+                {
+                    "type": "html",
+                    "name": "cover",
+                    "html": "<h3 class='q-subtitle'>3.2.- Quels modèles, ontologies ou normes de description sont reconnus ou compatibles avec votre jeu de données ?</h3><p class='q-text'>Cochez toutes les options que vous reconnaissez ou estimez compatibles avec votre jeu de données. Si différentes compatibilités s'appliquent à différentes entités, vous pourrez le préciser dans les questions suivantes.</p>"
+                },           
+                {
+                    "type": "checkbox",
+                    "name": "question2g3",
+                    "titleLocation": "hidden",
+                    "choices": [
+                        { "value": "BIBFRAME", "text": "BIBFRAME – ontologie pour les bibliothèques, successeur de MARC" },
+                        { "value": "CCO", "text": "CCO – Cataloging Cultural Objects, guide pour décrire objets culturels" },
+                        { "value": "CDWA", "text": "CDWA (Categories for the Description of Works of Art) – œuvres d'art et collections" },
+                        { "value": "CIDOC CRM", "text": "CIDOC CRM – ontologie formelle définissant classes, relations et axiomes pour modéliser le patrimoine culturel ; sert de base conceptuelle pour créer des modèles de métadonnées implémentables. Extensions (CRMdig, CRMinf, CRMpe, etc.)" },
+                        { "value": "Dublin Core (DC)", "text": "Dublin Core (DC) – schéma général pour décrire des ressources numériques et physiques" },
+                        { "value": "Dublin Core Ontology (DCO)", "text": "Dublin Core Ontology (DCO) – formalisation en OWL de Dublin Core" },
+                        { "value": "EAC-CPF", "text": "EAC-CPF (Encoded Archival Context – Corporate Bodies, Persons, Families) – autorités et contextes archivistiques" },
+                        { "value": "EAD", "text": "EAD (Encoded Archival Description) – fonds et collections d'archives" },
+                        { "value": "EBUCore", "text": "EBUCore – métadonnées audiovisuelles européennes" },
+                        { "value": "EDM", "text": "EDM (Europeana Data Model) – modèle pour partager des données avec Europeana" },
+                        { "value": "FIAT/IFTA", "text": "FIAT/IFTA Cataloguing Rules – règles pour cataloguer médias audiovisuels" },
+                        { "value": "FRBRoo", "text": "FRBRoo – ontologie dérivée de FRBR et du CIDOC CRM ; modèle conceptuel orienté objet pour la bibliographie et le patrimoine" },
+                        { "value": "ISBD", "text": "ISBD – International Standard Bibliographic Description" },
+                        { "value": "ISAD(G)", "text": "ISAD(G) – normes internationales pour l'archivage et description des fonds" },
+                        { "value": "ISAAR(CPF)", "text": "ISAAR(CPF) – norme internationale pour l'archivage des autorités (personnes, familles, organismes)" },
+                        { "value": "ISDF", "text": "ISDF – norme pour les fonds documentaires et fichiers institutionnels" },
+                        { "value": "ISDIAH", "text": "ISDIAH – norme pour description d'institutions d'archives et de patrimoine" },
+                        { "value": "LIDO", "text": "LIDO (Lightweight Information Describing Objects) – pour objets de musée" },
+                        { "value": "LRMoo", "text": "LRMoo – ontologie dérivée de LRM et du CIDOC CRM ; modèle conceptuel orienté objet pour les ressources bibliographiques" },
+                        { "value": "MODS", "text": "MODS (Metadata Object Description Schema) – bibliographie et objets culturels" },
+                        { "value": "Object ID", "text": "Object ID – norme pour identifier et documenter objets patrimoniaux" },
+                        { "value": "PBCore", "text": "PBCore – médias audiovisuels" },
+                        { "value": "PREMIS", "text": "PREMIS – préservation numérique" },
+                        { "value": "PROV-O", "text": "PROV-O (W3C Provenance Ontology)" },
+                        { "value": "RADFG", "text": "RADFG – règles pour documents graphiques ou fonds spécifiques" },
+                        { "value": "RDA", "text": "RDA – normes pour décrire les ressources bibliographiques (Resource Description and Access)" },
+                        { "value": "RiC-CM / RiC-O", "text": "RiC-CM / RiC-O – modèle conceptuel des archives et des contextes archivistiques, complexe et orienté Linked Open Data" },
+                        { "value": "Schema.org", "text": "Schema.org – vocabulaire général pour structurer des données web" },
+                        { "value": "VRA Core", "text": "VRA Core – objets visuels et artistiques" },
+                        { "value": "Modèle interne", "text": "Modèle interne non standardisé" },
+                        { "value": "Je ne sais pas", "text": "Je ne sais pas / N'existe pas" }
+                    ],
+                    "showOtherItem": true
+                }
+            ]
+        },
+        {
+            "name": "page_questionsg4",
+            "elements": [
+                {
+                    "type": "html",
+                    "name": "title_g4",
+                    "html": "<h2 class='q-title'>4. Entités</h2>"
+                },
+                {
+                    "type": "html",
+                    "name": "cover",
+                    "html": "<h3 class='q-subtitle'>4.1 – Entités / Tables</h3>\n<p class='q-text'>Cette question vise à recenser les entités présentes dans votre jeu de données.</p>\n<p class='q-text'>Par « entité », nous entendons tout concept, objet, événement ou élément individuel pour lequel des propriétés ou attributs sont stockés. Pensez aux principales catégories qui composent votre jeu de données.</p>\n<ul class='q-list'>\n  <li>Exemples d'entités courantes dans les institutions GLAM : <em>Œuvres</em>, <em>Auteurs</em>, <em>Expositions</em>, <em>Collections</em>, <em>Documents</em>, <em>Volumes</em>, <em>Thèmes</em>, <em>Événements historiques</em>, etc.</li>\n</ul>\n<p class='q-text'>Dans le cas d'une base de données relationnelle, nous faisons référence aux tables qui composent la base de données, telles que <em>Œuvres</em>, <em>Auteurs</em>, <em>Expositions</em>, <em>Documents</em>, etc.</p>\n<p class='q-text'>Veuillez répondre à cette question en vous concentrant sur les entités de votre jeu de données, et non sur les attributs qui les décrivent.</p>"
+                },
+                {
+                    "type": "matrixdynamic",
+                    "name": "question1g4",
+                    "titleLocation": "hidden",
+                    "columns": [
+                        { "name": "entite", "title": "Entité / Table", "cellType": "text", "placeHolder": "ex : Œuvres" },
+                        { "name": "volume", "title": "Volume", "cellType": "text", "inputType": "number", "placeHolder": "ex : 1200" },
+                        { "name": "modele", "title": "Modèle", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : LIDO" },
+                        { "name": "systeme", "title": "Système(s) de gestion", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : MuseumPlus" }
+                    ],
+                        "rowCount": 2
+                }
+            ]
+        },
+        {
+            "name": "page_questionsg5",
+            "elements": [
+                {
+                    "type": "html",
+                    "name": "title_g5",
+                    "html": "<h2 class='q-title'>5. Attributs / Champs</h2>"
+                },
+                {
+                    "type": "html",
+                    "name": "cover",
+                    "html": "<h3 class='q-subtitle'>5.1 – Attributs / Champs</h3>\n<p class='q-text'>Pour chaque entité que vous avez indiquée dans la question 4.1, détaillez tous les attributs (champs) enregistrés.</p>\n<p class='q-text'>Par « attribut », nous entendons toute information ou propriété qui décrit une entité dans le jeu de données. Par exemple : dans l'entité « Œuvres », les attributs peuvent être « titre », « auteur », « date de création », « matériau », etc.</p>\n"
+                },
+                {
+                    "type": "matrixdynamic",
+                    "name": "question1g5",
+                    "titleLocation": "hidden",
+                    "columns": [
+                        { "name": "Entites", "title": "Entités / Tables", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Œuvres" },
+                        { "name": "Attributs", "title": "Nom de l'attribut / Champ", "cellType": "text", "placeHolder": "ex : Titre" },
+                        { "name": "NomInterne", "title": "Nom interne", "cellType": "text", "placeHolder": "ex : titre_oeuvre" },
+                        { "name": "Obligatoire", "title": "Obligatoire / Optionnel", "cellType": "dropdown", "choices": ["Oui", "Non"], "optionsCaption": "ex : Oui" },
+                        { "name": "TypeDonnee", "title": "Type de donnée", "cellType": "dropdown", "choices": ["Booléen", "Date", "Identifiant interne", "Identifiant ou lien externe", "Lien vers une ressource numérique", "Lien vers une autre entité/table", "Texte libre", "Vocabulaire contrôlé"], "optionsCaption": "ex : Texte libre" },
+                        { "name": "Grupo", "title": "Groupe", "cellType": "text", "placeHolder": "ex : Identification" },
+                        { "name": "Langue", "title": "Langue", "cellType": "text", "placeHolder": "ex : Français" },
+                        { "name": "Volume", "title": "Volume", "cellType": "text", "inputType": "number", "placeHolder": "ex : 1200" },
+                        { "name": "Description", "title": "Description", "cellType": "text", "placeHolder": "ex : Titre de l'œuvre tel qu'il apparaît au catalogue" }
+                    ],
+                        "rowCount": 2,
+                        "addRowButtonLocation": "bottom",
+                        "addRowText": "Ajouter une ligne",
+                        "removeRowText": "Supprimer"
+                }
+            ]
+        },
+        {
+            "name": "page_questionsg6",
+            "elements": [
+                {
+                    "type": "html",
+                    "name": "title_g6",
+                    "html": "<h2 class='q-title'>6. Recensement des doublons</h2>"
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g6",
+                    "html": "<h3 class='q-subtitle'>6.1 – Recensement des doublons dans les entités</h3><p class='q-text'>Cette question vise à identifier la présence de doublons au niveau des entités décrites dans la question 4.1.</p><p class='q-text'>Sont considérés comme doublons tous les enregistrements représentant la même entité telle que définie dans la question 4.1, c'est-à-dire des enregistrements correspondant à la même unité conceptuelle ou individuelle dans votre jeu de données. Ces doublons peuvent entraîner des répétitions significatives et affecter la fiabilité et l'exactitude des données.</p>"
+                },
+                {
+                    "type": "matrixdynamic",
+                    "name": "question1g6",
+                    "titleLocation": "hidden",
+                    "rowCount": 2,
+                    "addRowText": "Ajouter une ligne",
+                    "removeRowText": "Supprimer",
+                    "addRowButtonLocation": "bottom",
+                    "columns": [
+                        { "name": "entite", "title": "Entités", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Œuvres" },
+                        { "name": "volume", "title": "Volume de doublons", "cellType": "text", "inputType": "number", "placeHolder": "ex : 15" },
+                        { "name": "commentaires", "title": "Commentaires / détails", "cellType": "text", "placeHolder": "ex : doublons issus d'une migration de système" }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "page_questionsg7",
+            "elements": [
+                {
+                    "type": "html",
+                    "name": "title_g7",
+                    "html": "<h2 class='q-title'>7. Expression des incertitudes</h2>"
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g7",
+                    "html": "<h3 class='q-subtitle'>7.1 – Expression des incertitudes dans les attributs</h3><p class='q-text'>Cette question vise à clarifier les différents modes d'expression des incertitudes dans les attributs décrits dans la question 5.1.</p><p class='q-text'>Sont considérées comme exprimant une incertitude toutes les expressions indiquant que la valeur est douteuse, inconnue, incertaine, approximative, alternative ou non définie.</p><p class='q-text'>Si plusieurs formats d'expression coexistent pour un même attribut, ajoutez une ligne par format.</p>"
+                },
+                {
+                    "type": "matrixdynamic",
+                    "name": "question1g7",
+                    "titleLocation": "hidden",
+                    "rowCount": 2,
+                    "addRowText": "Ajouter une ligne",
+                    "removeRowText": "Supprimer",
+                    "addRowButtonLocation": "bottom",
+                    "columns": [
+                        { "name": "Entite", "title": "Entité", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Œuvres" },
+                        { "name": "Attribut", "title": "Attributs", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Date de création" },
+                        { "name": "IncertitudeStructure", "title": "Type d'expression", "cellType": "dropdown", "choices": ["Intégrée au texte", "L'attribut exprime l'incertitude sur un autre attribut"], "hasOther": true, "otherText": "Autre :", "optionsCaption": "ex : Intégrée au texte" },
+                        { "name": "IncertitudeExpression", "title": "Expression des incertitudes", "cellType": "tagbox", "choices": ["Vocabulaire contrôlé", "Texte libre", "?", "(?)", "incertain / incertaine", "douteux / douteuse", "inconnu / inconnue", "indéterminé", "approximatif / approximative", "…", "- (Entre deux valeurs)", "~ (Entre deux valeurs)", "ou (Entre deux valeurs)", "probable", "estimé(e)", "ca. (circa)", "avant", "après", "début du", "fin du", "entre … et …", "présumé(e)", "env. (environ)", "à confirmer", "│ (Entre deux valeurs)", "/ (Entre deux valeurs)", "; (Entre deux valeurs)"], "hasOther": true, "otherText": "Autre :", "optionsCaption": "ex : ca. (circa)" },
+                        { "name": "Volume", "title": "Volume", "cellType": "text", "inputType": "number", "placeHolder": "ex : 80" },
+                        { "name": "Exemple", "title": "Exemple", "cellType": "text", "placeHolder": "ex : ca. 1850" }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "page_questionsg8",
+            "elements": [
+                {
+                    "type": "html",
+                    "name": "title_g8",
+                    "html": "<h2 class='q-title'>8. Ambiguïtés</h2>"
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g8_1",
+                    "html": "<h3 class='q-subtitle'>8.1 – Ambiguïtés dans les valeurs d'attributs à multiples entrées (cardinalité multiple)</h3><p class='q-text'>Cette question vise à identifier et caractériser les relations sémantiques entre les valeurs multiples d'un même attribut, lorsque celui-ci peut contenir plusieurs valeurs dans un même enregistrement (cardinalité supérieure à 1).</p><p class='q-text'>Par « ambiguïté », on entend toute situation où la relation entre les valeurs d'une même cellule n'est pas explicitement définie, peut être interprétée de plusieurs manières, ou présente des sens différents selon le contexte.</p><p class='q-text'>Exemple : un attribut « Technique » contenant « Peinture à l'huile, Collage » — s'agit-il de deux techniques employées simultanément ? L'une corrige-t-elle l'autre ? Sont-elles en relation hiérarchique ?</p><p class='q-text'>Si plusieurs relations sémantiques coexistent pour les valeurs d'un même attribut, ne retenez que la relation sémantique correcte selon les règles de votre institution et indiquez le nombre de valeurs qui correspondent à cette relation. Les autres valeurs seront considérées comme des expressions non curées.</p>"
+                },
+                {
+                    "type": "matrixdynamic",
+                    "name": "question1g8",
+                    "titleLocation": "hidden",
+                    "rowCount": 2,
+                    "addRowText": "Ajouter une ligne",
+                    "removeRowText": "Supprimer",
+                    "addRowButtonLocation": "bottom",
+                    "columns": [
+                        { "name": "Entite", "title": "Entité", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Œuvres" },
+                        { "name": "Attribut", "title": "Attribut", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Technique" },
+                        { "name": "RelationType", "title": "Type de relation", "cellType": "tagbox", "choices": ["Valides simultanément", "Exclusives (une ou l'autre)", "Équivalentes", "Variante ou reformulation", "Complémentaires", "Quantification", "Partie-tout", "Niveau hiérarchique", "Séquentielle", "Source / provenance"], "hasOther": true, "otherText": "Autre", "optionsCaption": "ex : Valides simultanément" },
+                        { "name": "Volume", "title": "Volume", "cellType": "text", "inputType": "number", "placeHolder": "ex : 40" }
+                    ]
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g8_2",
+                    "html": "<h3 class='q-subtitle'>8.2 – Ambiguïtés entre enregistrements d'un même attribut</h3><p class='q-text'>Cette question vise à identifier les hétérogénéités sémantiques au sein d'un même attribut, c'est-à-dire des enregistrements dont les valeurs ne partagent pas la même signification sémantique.</p><p class='q-text'>Ne sélectionnez pas ici des valeurs dont la relation se limite à être une variante d'expression, ni celles résultant d'erreurs de saisie.</p><p class='q-text'>Si plusieurs cas d'hétérogénéité coexistent pour un même attribut, ajoutez une ligne par cas.</p>"
+                },
+                {
+                    "type": "matrixdynamic",
+                    "name": "question2g8",
+                    "titleLocation": "hidden",
+                    "rowCount": 2,
+                    "addRowText": "Ajouter une ligne",
+                    "removeRowText": "Supprimer",
+                    "addRowButtonLocation": "bottom",
+                    "columns": [
+                        { "name": "Entite", "title": "Entité", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Œuvres" },
+                        { "name": "Attribut", "title": "Attribut", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Matériau" },
+                        { "name": "Relation", "title": "Type de relation", "cellType": "tagbox", "choices": ["Incohérent / hors type", "Spécification / précision", "Niveau hiérarchique"], "hasOther": true, "otherText": "Autre", "optionsCaption": "ex : Spécification / précision" },
+                        { "name": "Volume", "title": "Volume", "cellType": "text", "inputType": "number", "placeHolder": "ex : 20" }
+                    ]
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g8_3",
+                    "visibleIf": "{hasGroupe} = true",
+                    "html": "<h3 class='q-subtitle'>8.3 – Ambiguïtés entre attributs au sein d'un même groupe</h3><p class='q-text'>Cette question vise à identifier les cas où les attributs d'un même groupe entretiennent des relations sémantiques ambiguës ou hétérogènes. Si un groupe est bien défini, ses attributs devraient toujours être liés par un même type de relation. Cette question permet de repérer les groupes où ce n'est pas le cas.</p><p class='q-text'>Si plusieurs relations sémantiques existent pour les attributs d'un même groupe, ne retenez que la relation sémantique correcte et indiquez le nombre de valeurs qui correspondent à cette relation. Les autres valeurs seront considérées comme des expressions non curées.</p>"
+                },
+                {
+                    "type": "matrixdynamic",
+                    "name": "question3g8",
+                    "visibleIf": "{hasGroupe} = true",
+                    "titleLocation": "hidden",
+                    "rowCount": 2,
+                    "addRowText": "Ajouter une ligne",
+                    "removeRowText": "Supprimer",
+                    "addRowButtonLocation": "bottom",
+                    "columns": [
+                        { "name": "Entite", "title": "Entité", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Œuvres" },
+                        { "name": "Groupe", "title": "Groupe", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Dimensions" },
+                        { "name": "Attribut1", "title": "Attribut 1", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Hauteur" },
+                        { "name": "Attribut2", "title": "Attribut 2", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Largeur" },
+                        { "name": "TypeRelation", "title": "Type de relation", "cellType": "tagbox", "choices": ["Valides simultanément", "Compatibilité", "Variante / reformulation", "Complémentarité", "Redondance contrôlée", "Partie-tout", "Niveau hiérarchique", "Séquentielle", "Contraintes croisées", "Valeurs dérivées", "Certitude / incertitude", "Source / provenance"], "hasOther": true, "otherText": "Autre", "optionsCaption": "ex : Complémentarité" },
+                        { "name": "Volume", "title": "Volume", "cellType": "text", "inputType": "number", "placeHolder": "ex : 500" }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "page_questionsg9",
+            "elements": [
+                {
+                    "type": "html",
+                    "name": "title_g9",
+                    "html": "<h2 class='q-title'>9. État de normalisation des données</h2>"
+                },
+                {
+                    "type": "html",
+                    "name": "aviso_g9_sin_tipos",
+                    "visibleIf": "{hasDate} <> true and {hasIdentifiantInterne} <> true and {hasIdentifiantExterne} <> true and {hasLienRessource} <> true and {hasLienEntite} <> true and {hasTexteLibre} <> true and {hasVocabulaire} <> true",
+                    "html": "<div style='background:#fff3cd;border:1px solid #ffc107;border-radius:6px;padding:16px 20px;color:#856404;'><strong>⚠ Aucun type de donnée n'a été renseigné.</strong><p style='margin:8px 0 0;'>Veuillez retourner à la question <strong>5.1 – Attributs / Champs</strong> et sélectionner le type de donnée de chaque attribut avant de répondre à cette section.</p></div>"
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g9_1",
+                    "visibleIf": "{hasDate} = true",
+                    "html": "<h3 class='q-subtitle'>9.1 – Attributs de type « Date »</h3><p class='q-text'>Cette question vise à connaître l'état de la curation des attributs de date dans votre jeu de données. Pour chaque attribut de type « Date », décrivez le format utilisé. Si plusieurs formats coexistent pour un même attribut, ajoutez une ligne par format.</p>"
+                },
+                {
+                    "type": "matrixdynamic",
+                    "name": "question1g9",
+                    "titleLocation": "hidden",
+                    "visibleIf": "{hasDate} = true",
+                    "rowCount": 2,
+                    "addRowText": "Ajouter une ligne",
+                    "removeRowText": "Supprimer",
+                    "addRowButtonLocation": "bottom",
+                    "columns": [
+                        { "name": "Entite", "title": "Entité", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Œuvres" },
+                        { "name": "Attribut", "title": "Attributs", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Date de création" },
+                        { "name": "FormatDate", "title": "Formats de dates", "cellType": "dropdown", "choices": ["4 chiffres (YYYY)", "3 chiffres (YYY)", "2 chiffres (JJ, MM ou YY)", "2 et 4 chiffres (YYYY, MM, MM/YYYY, MM-YYYY)", "2, 2 et 4 chiffres (JJ/MM/YYYY, MM/JJ/YYYY, YYYY;MM;JJ)", "Plage de 4 chiffres (YYYY - YYYY, YYYY/YYYY)", "Texte libre", "Autre :___________"], "optionsCaption": "ex : 4 chiffres (YYYY)" },
+                        { "name": "Volume", "title": "Volume", "cellType": "text", "inputType": "number", "placeHolder": "ex : 900" }
+                    ]
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g9_2",
+                    "visibleIf": "{hasIdentifiantInterne} = true",
+                    "html": "<h3 class='q-subtitle'>9.2 – Attributs de type « Identifiant interne »</h3><p class='q-text'>Cette question vise à connaître l'état de la curation des attributs « Identifiant interne » dans votre jeu de données. Pour chaque attribut de ce type, décrivez la structure utilisée. Si plusieurs formats coexistent, ajoutez une ligne par format.</p>"
+                },
+                {
+                    "type": "matrixdynamic",
+                    "name": "question2g9",
+                    "titleLocation": "hidden",
+                    "visibleIf": "{hasIdentifiantInterne} = true",
+                    "rowCount": 2,
+                    "addRowText": "Ajouter une ligne",
+                    "removeRowText": "Supprimer",
+                    "addRowButtonLocation": "bottom",
+                    "columns": [
+                        { "name": "Entite", "title": "Entité", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Œuvres" },
+                        { "name": "Attribut", "title": "Attributs", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : N° d'inventaire" },
+                        { "name": "StructureComposition", "title": "Structure de composition", "cellType": "tagbox", "choices": ["Préfixe alphabétique", "Année d'entrée / d'acquisition", "Numéro séquentiel", "Code d'entité / de fonds", "Code de localisation", "Niveau hiérarchique", "Chiffre de contrôle", "Identifiant libre / non structuré"], "hasOther": true, "otherText": "Autre", "optionsCaption": "ex : Année d'entrée" },
+                        { "name": "Unicite", "title": "Unicité", "cellType": "dropdown", "choices": ["Oui", "Non"], "optionsCaption": "ex : Oui" },
+                        { "name": "CleComposite", "title": "Clé composite", "cellType": "text", "placeHolder": "ex : 2020.15.3" },
+                        { "name": "Volume", "title": "Volume", "cellType": "text", "inputType": "number", "placeHolder": "ex : 1200" }
+                    ]
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g9_3",
+                    "visibleIf": "{hasIdentifiantExterne} = true",
+                    "html": "<h3 class='q-subtitle'>9.3 – Attributs de type « Identifiant ou lien externe »</h3><p class='q-text'>Cette question vise à connaître l'état de la curation des attributs « Identifiant ou lien externe ». Pour chaque attribut de ce type, indiquez le type d'identifiant ou de lien utilisé. S'il existe plusieurs types pour un même attribut, créez une nouvelle ligne.</p>"
+                },
+                {
+                    "type": "matrixdynamic",
+                    "name": "question3g9",
+                    "titleLocation": "hidden",
+                    "visibleIf": "{hasIdentifiantExterne} = true",
+                    "rowCount": 2,
+                    "addRowText": "Ajouter une ligne",
+                    "removeRowText": "Supprimer",
+                    "addRowButtonLocation": "bottom",
+                    "columns": [
+                        { "name": "Entite", "title": "Entité", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Auteurs" },
+                        { "name": "Attribut", "title": "Attributs", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Identifiant VIAF" },
+                        { "name": "TypeIdentifiant", "title": "Type de Identifiant ou lien", "cellType": "dropdown", "choices": ["IIIF", "URL", "URI", "VIAF (Virtual International Authority File)", "GeoNames", "Swisstopo", "Wikidata URI", "WikiCite", "GNA (Global Names Architecture)", "PeriodO", "ISO 639-3", "ISO 8601", "ChronOntology", "ORCID (Open Researcher and Contributor ID)", "ISNI (International Standard Name Identifier)", "ISIL (International Standard Identifier for Libraries and Related Organizations)", "DOI (Digital Object Identifier)", "ARK (Archival Resource Key)", "ISBN (International Standard Book Number)", "ISAN (International Standard Audiovisual Number)", "ISRC (International Standard Recording Code)", "ISSN", "Autre :___________"], "optionsCaption": "ex : VIAF" },
+                        { "name": "Volume", "title": "Volume", "cellType": "text", "inputType": "number", "placeHolder": "ex : 300" }
+                    ]
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g9_4",
+                    "visibleIf": "{hasLienRessource} = true",
+                    "html": "<h3 class='q-subtitle'>9.4 – Attributs de type « Lien vers une ressource numérique »</h3><p class='q-text'>Pour chaque attribut de ce type, indiquez le type de lien et le format de la ressource associée. S'il existe plusieurs types de lien pour un même attribut, créez une nouvelle ligne par type.</p><p class='q-text'><em>Note : cette question se limite au type de lien et au format de la ressource. L'accessibilité de ces ressources sera documentée à la question 10.3.</em></p>"
+                },
+                {
+                    "type": "matrixdynamic",
+                    "name": "question4g9",
+                    "titleLocation": "hidden",
+                    "visibleIf": "{hasLienRessource} = true",
+                    "rowCount": 2,
+                    "addRowText": "Ajouter une ligne",
+                    "removeRowText": "Supprimer",
+                    "addRowButtonLocation": "bottom",
+                    "columns": [
+                        { "name": "Entite", "title": "Entité", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Œuvres" },
+                        { "name": "Attribut", "title": "Attributs", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Image numérisée" },
+                        { "name": "TypeLien", "title": "Type de lien", "cellType": "dropdown", "choices": ["URI persistante (LOD-ready)", "URL persistante / permalien", "URL simple", "ARK (Archival Resource Key)", "IIIF", "Chemin de fichier / route serveur", "Identifiant interne (non résolvable)"], "hasOther": true, "otherText": "Autre", "optionsCaption": "ex : URL permalien" },
+                        { "name": "Ressource", "title": "Ressource", "cellType": "dropdown", "choices": ["JPEG", "TIFF", "PNG", "RAW", "PDF", "DOCX", "TXT", "RTF", "HTML", "EPUB", "XML (EAD, MODS, METS, TEI)", "RDF", "JSON", "MARCXML", "CSV", "MP3", "WAV", "FLAC", "MKV", "MP4", "MOV", "AVI", "OBJ", "STL", "PLY", "GLTF/GLB", "FBX", "WARC", "EXE", "Autres : _______________"], "optionsCaption": "ex : JPEG" },
+                        { "name": "Volume", "title": "Volume", "cellType": "text", "inputType": "number", "placeHolder": "ex : 1100" }
+                    ]
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g9_6",
+                    "visibleIf": "{hasLienEntite} = true",
+                    "html": "<h3 class='q-subtitle'>9.5 – Attributs de type « Lien vers une autre entité/table »</h3><p class='q-text'>Pour chaque attribut indiqué comme type « Lien vers une autre entité/table », indiquez à quelle entité il fait référence.</p><p class='q-text'>Si un attribut est lié à plusieurs entités, ne retenez que le lien correct selon les règles de votre institution et indiquez le volume correspondant. Les autres liens seront considérés comme non curés.</p>"
+                },
+                {
+                    "type": "matrixdynamic",
+                    "name": "question6g9",
+                    "titleLocation": "hidden",
+                    "visibleIf": "{hasLienEntite} = true",
+                    "rowCount": 2,
+                    "addRowText": "Ajouter une ligne",
+                    "removeRowText": "Supprimer",
+                    "addRowButtonLocation": "bottom",
+                    "columns": [
+                        { "name": "Entite", "title": "Entité source", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Œuvres" },
+                        { "name": "Attribut1", "title": "Attribut1", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Auteur" },
+                        { "name": "Entites", "title": "Entités", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Auteurs" },
+                        { "name": "Volume", "title": "Volume", "cellType": "text", "inputType": "number", "placeHolder": "ex : 1200" }
+                    ]
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g9_7",
+                    "visibleIf": "{hasTexteLibre} = true",
+                    "html": "<h3 class='q-subtitle'>9.6 – Attributs de type « Texte libre »</h3><p class='q-text'>Cette question vise à connaître l'état de la curation des attributs de type « Texte libre ». Pour chaque attribut, indiquez une estimation du nombre de valeurs distinctes possibles (facettes).</p>"
+                },
+                {
+                    "type": "matrixdynamic",
+                    "name": "question7g9",
+                    "titleLocation": "hidden",
+                    "visibleIf": "{hasTexteLibre} = true",
+                    "rowCount": 2,
+                    "addRowText": "Ajouter une ligne",
+                    "removeRowText": "Supprimer",
+                    "addRowButtonLocation": "bottom",
+                    "columns": [
+                        { "name": "Entite", "title": "Entité", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Œuvres" },
+                        { "name": "Attribut", "title": "Attributs", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Description" },
+                        { "name": "NbFacettes", "title": "N° valeurs possibles (Facettes)", "cellType": "text", "inputType": "number", "placeHolder": "ex : 1150" }
+                    ]
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g9_8",
+                    "visibleIf": "{hasVocabulaire} = true",
+                    "html": "<h3 class='q-subtitle'>9.7 – Attributs de type « Vocabulaire contrôlé »</h3><p class='q-text'>Cette question vise à connaître l'état de la curation des attributs « Vocabulaire contrôlé ». Pour chaque attribut de ce type, décrivez le vocabulaire utilisé. S'il existe plusieurs types de vocabulaires pour un même attribut, créez une nouvelle ligne par type.</p>"
+                },
+                {
+                    "type": "matrixdynamic",
+                    "name": "question8g9",
+                    "titleLocation": "hidden",
+                    "visibleIf": "{hasVocabulaire} = true",
+                    "rowCount": 2,
+                    "addRowText": "Ajouter une ligne",
+                    "removeRowText": "Supprimer",
+                    "addRowButtonLocation": "bottom",
+                    "columns": [
+                        { "name": "Entite", "title": "Entité", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Œuvres" },
+                        { "name": "Attribut", "title": "Attributs", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Matériau" },
+                        { "name": "TypeVocabulaire", "title": "Type de vocabulaire", "cellType": "dropdown", "choices": ["Interne - Liste plate (sans hiérarchie)", "Interne - Hiérarchie simple (parent-enfant)", "Interne - Thésaurus (relations hiérarchiques et associatives)", "FAST (Faceted Application of Subject Terminology – OCLC/LoC)", "GND (Gemeinsame Normdatei – Allemagne)", "Homosaurus", "LCGFT (Library of Congress Genre/Form Terms)", "RAMEAU (version classique)", "LCNAF (LC Name Authority File)", "LCSH (Library of Congress Subject Headings)", "TGM (Thesaurus for Graphic Materials – LoC)", "Thésaurus UNESCO", "MIGFG (Moving Image Genre-Form Guide – LoC)", "SHIC (Social History and Industrial Classification)", "Thesaurus Historical Person Data", "AAT (Getty Art & Architecture Thesaurus)", "CONA (Cultural Objects Name Authority – Getty)", "Iconclass (LOD disponible)", "RAMEAU (version LOD publiée par la BnF)", "TGN (Getty Thesaurus of Geographic Names)", "UAT (Unified Astronomy Thesaurus)", "ULAN (Getty Union List of Artist Names)", "Vocabulaires suisses des arts du spectacle (forme documentaire, type d'activité, type de performance, etc.)"], "hasOther": true, "otherText": "Autre", "optionsCaption": "ex : AAT (Getty)" },
+                        { "name": "Volume", "title": "Volume", "cellType": "text", "inputType": "number", "placeHolder": "ex : 1200" },
+                        { "name": "NbValeurs", "title": "N° valeurs du vocabulaire (interne)", "cellType": "text", "inputType": "number", "placeHolder": "ex : 45" },
+                        { "name": "DocumentInterne", "title": "Document interne", "cellType": "file", "acceptedTypes": ".pdf,.doc,.docx,.xls,.xlsx,.csv", "storeDataAsText": true, "allowMultiple": false }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "page_questionsg10",
+            "elements": [
+                {
+                    "type": "html",
+                    "name": "title_g10",
+                    "html": "<h2 class='q-title'>10. Pratiques de mise à jour et stabilité des identifiants</h2>"
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g10_1",
+                    "html": "<h3 class='q-subtitle'>10.1 – Périodicité de mise à jour du jeu de données</h3><p class='q-text'>Quelle est la périodicité générale de mise à jour de ce jeu de données ?</p>"
+                },
+                {
+                    "type": "radiogroup",
+                    "name": "question1g10a",
+                    "titleLocation": "hidden",
+                    "choices": [
+                        "Mise à jour automatique",
+                        "Mise à jour semi-automatique",
+                        "Mise à jour manuelle périodique",
+                        "Mise à jour ponctuelle / ad hoc",
+                        "Pas de mise à jour"
+                    ],
+                    "hasOther": true,
+                    "otherText": "Autre"
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g10_1b",
+                    "visibleIf": "{question1g10a} notempty",
+                    "html": "<h3 class='q-subtitle'>10.1b – Attributs avec une périodicité différente</h3><p class='q-text'>Si certains attributs ont une périodicité de mise à jour différente de celle indiquée ci-dessus, précisez-les ici. Cette section est optionnelle.</p>"
+                },
+                {
+                    "type": "matrixdynamic",
+                    "name": "question1g10b",
+                    "titleLocation": "hidden",
+                    "visibleIf": "{question1g10a} notempty",
+                    "rowCount": 1,
+                    "addRowText": "Ajouter une ligne",
+                    "removeRowText": "Supprimer",
+                    "addRowButtonLocation": "bottom",
+                    "columns": [
+                        { "name": "Entite", "title": "Entité", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Expositions" },
+                        { "name": "Attribut", "title": "Attribut", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Dates de l'exposition" },
+                        { "name": "Periodicite", "title": "Périodicité", "cellType": "dropdown", "choices": ["Mise à jour automatique", "Mise à jour semi-automatique", "Mise à jour manuelle périodique", "Mise à jour ponctuelle / ad hoc", "Pas de mise à jour"], "hasOther": true, "otherText": "Autre", "optionsCaption": "ex : Ponctuelle / ad hoc" },
+                        { "name": "Commentaires", "title": "Commentaires", "cellType": "text", "placeHolder": "ex : mise à jour à la création d'une exposition" }
+                    ]
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g10_2",
+                    "visibleIf": "{hasIdentifiantInterne} = true or {hasIdentifiantExterne} = true",
+                    "html": "<h3 class='q-subtitle'>10.2 – Durabilité et stabilité des identifiants</h3><p class='q-text'>Pour chaque attribut de type identifiant (interne ou externe), indiquez si sa valeur est pérenne, stable ou susceptible de changer dans le temps. Cette information est essentielle pour évaluer la fiabilité des références dans une plateforme de données liées.</p>"
+                },
+                {
+                    "type": "matrixdynamic",
+                    "name": "question2g10",
+                    "titleLocation": "hidden",
+                    "visibleIf": "{hasIdentifiantInterne} = true or {hasIdentifiantExterne} = true",
+                    "rowCount": 2,
+                    "addRowText": "Ajouter une ligne",
+                    "removeRowText": "Supprimer",
+                    "addRowButtonLocation": "bottom",
+                    "columns": [
+                        { "name": "Entite", "title": "Entité", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Œuvres" },
+                        { "name": "Attribut", "title": "Attributs", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : N° d'inventaire" },
+                        { "name": "Durabilite", "title": "Durabilité / stabilité", "cellType": "dropdown", "choices": ["Permanent (permalien / URI persistante)", "Stable (ne devrait pas changer)", "Susceptible de changer", "Lien mort / invalide actuellement"], "hasOther": true, "otherText": "Autre", "optionsCaption": "ex : Stable" },
+                        { "name": "Commentaires", "title": "Commentaires", "cellType": "text", "placeHolder": "ex : identifiant interne fixe" }
+                    ]
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g10_3",
+                    "visibleIf": "{hasLienRessource} = true",
+                    "html": "<h3 class='q-subtitle'>10.3 – Accessibilité des ressources numériques</h3><p class='q-text'>Pour chaque attribut de type « Lien vers une ressource numérique », indiquez si la ressource associée est actuellement accessible depuis l'extérieur de l'institution.</p>"
+                },
+                {
+                    "type": "matrixdynamic",
+                    "name": "question3g10",
+                    "visibleIf": "{hasLienRessource} = true",
+                    "titleLocation": "hidden",
+                    "rowCount": 2,
+                    "addRowText": "Ajouter une ligne",
+                    "removeRowText": "Supprimer",
+                    "addRowButtonLocation": "bottom",
+                    "columns": [
+                        { "name": "Entite", "title": "Entité", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Œuvres" },
+                        { "name": "Attribut", "title": "Attributs", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Image numérisée" },
+                        { "name": "Accessibilite", "title": "Accessibilité", "cellType": "dropdown", "choices": ["Accessible via URL web (résolvable publiquement)", "Accessible via API / endpoint", "Accessible en réseau local uniquement", "Non accessible numériquement (BLOB / fichier local)", "Non numérisé"], "hasOther": true, "otherText": "Autre", "optionsCaption": "ex : Accessible via URL" },
+                        { "name": "Commentaires", "title": "Commentaires", "cellType": "text", "placeHolder": "ex : accès public" }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "page_questionsg11",
+            "elements": [
+                {
+                    "type": "html",
+                    "name": "title_g11",
+                    "html": "<h2 class='q-title'>11. Droits et licences</h2>"
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g11",
+                    "html": "<h3 class='q-subtitle'>11.1 – Régime général des droits et licences du jeu de données</h3><p class='q-text'>Quelle est la licence ou le régime de droits applicable à l'ensemble des données de ce catalogue ?</p>"
+                },
+                {
+                    "type": "radiogroup",
+                    "name": "question1g11a",
+                    "titleLocation": "hidden",
+                    "choices": [
+                        "CC0 — domaine public, aucun droit réservé",
+                        "CC BY",
+                        "CC BY-SA",
+                        "CC BY-NC",
+                        "Open Data Commons (PDL / ODC-BY / ODbL)",
+                        "Droits réservés à l'institution (usage interne uniquement)",
+                        "Inconnu / non déterminé"
+                    ],
+                    "hasOther": true,
+                    "otherText": "Autre"
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g11b",
+                    "visibleIf": "{question1g11a} notempty",
+                    "html": "<h3 class='q-subtitle'>11.1b – Attributs avec des restrictions spécifiques</h3><p class='q-text'>Si certains attributs sont soumis à des restrictions de propriété intellectuelle différentes du régime général (droits d'auteur de tiers, droit sui generis, restrictions contractuelles ou IA, etc.), précisez-les ici. Les données personnelles et les données sensibles feront l'objet de la section suivante.</p>"
+                },
+                {
+                    "type": "matrixdynamic",
+                    "name": "question1g11b",
+                    "titleLocation": "hidden",
+                    "visibleIf": "{question1g11a} notempty",
+                    "rowCount": 1,
+                    "addRowText": "Ajouter une ligne",
+                    "removeRowText": "Supprimer",
+                    "addRowButtonLocation": "bottom",
+                    "columns": [
+                        { "name": "Entite", "title": "Entité", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Œuvres" },
+                        { "name": "Attribut", "title": "Attribut", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Photographie de l'œuvre" },
+                        { "name": "Restriction", "title": "Type de restriction", "cellType": "dropdown", "choices": ["Droits d'auteur de tiers", "Droit sui generis sur les bases de données (UE)", "Restrictions contractuelles", "Restrictions IA (NoAI, clauses contractuelles)", "Usage interne uniquement"], "hasOther": true, "otherText": "Autre", "optionsCaption": "ex : Droits d'auteur de tiers" },
+                        { "name": "Commentaires", "title": "Commentaires", "cellType": "text", "placeHolder": "ex : droits détenus par le photographe" }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "page_questionsg_sensible",
+            "elements": [
+                {
+                    "type": "html",
+                    "name": "title_g_sensible",
+                    "html": "<h2 class='q-title'>12. Données sensibles et stratégies déontologiques</h2>"
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g12s_1",
+                    "html": "<h3 class='q-subtitle'>12.1 – Données à caractère personnel</h3><p class='q-text'>Ce jeu de données contient-il des attributs avec des données à caractère personnel (au sens du RGPD) ? <a href='https://www.cnil.fr/fr/rgpd-de-quoi-parle-t-on' target='_blank' style='display:inline-block;margin-left:8px;padding:2px 10px;background:#2980b9;color:#fff;border-radius:4px;font-size:12px;text-decoration:none;'>Qu'est-ce que le RGPD ?</a></p>"
+                },
+                {
+                    "type": "radiogroup",
+                    "name": "question1g12s_bool",
+                    "titleLocation": "hidden",
+                    "choices": ["Oui", "Non", "Incertain"]
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g12s_1b",
+                    "visibleIf": "{question1g12s_bool} = 'Oui'",
+                    "html": "<p class='q-text'>Pour chaque attribut concerné, précisez le type de donnée personnelle et la solution recommandée pour la publication.</p>"
+                },
+                {
+                    "type": "matrixdynamic",
+                    "name": "question1g12s",
+                    "titleLocation": "hidden",
+                    "visibleIf": "{question1g12s_bool} = 'Oui'",
+                    "rowCount": 1,
+                    "addRowText": "Ajouter une ligne",
+                    "removeRowText": "Supprimer",
+                    "addRowButtonLocation": "bottom",
+                    "columns": [
+                        { "name": "Entite", "title": "Entité", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Donateurs" },
+                        { "name": "Attribut", "title": "Attribut", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Nom du donateur" },
+                        { "name": "TypeDonneePerso", "title": "Type de donnée personnelle", "cellType": "dropdown", "choices": ["Identité (nom, prénom, pseudonyme)", "Coordonnées (adresse, email, téléphone)", "Date et lieu de naissance", "Données biométriques", "Données de santé / médical"], "hasOther": true, "otherText": "Autre", "optionsCaption": "ex : Identité" },
+                        { "name": "Solution", "title": "Solution recommandée", "cellType": "dropdown", "choices": ["Publier avec annotation (mention de données personnelles)", "Anonymiser avant publication", "Accès restreint (sur demande uniquement)", "Ne pas publier"], "optionsCaption": "ex : Accès restreint" },
+                        { "name": "Commentaires", "title": "Commentaires", "cellType": "text", "placeHolder": "ex : sur demande justifiée" }
+                    ]
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g12s_2",
+                    "html": "<h3 class='q-subtitle'>12.2 – Données culturellement ou éthiquement sensibles</h3><p class='q-text'>Ce jeu de données contient-il des attributs liés à des contenus culturellement ou éthiquement sensibles ?</p>"
+                },
+                {
+                    "type": "radiogroup",
+                    "name": "question2g12s_bool",
+                    "titleLocation": "hidden",
+                    "choices": ["Oui", "Non", "Incertain"]
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g12s_2b",
+                    "visibleIf": "{question2g12s_bool} = 'Oui'",
+                    "html": "<p class='q-text'>Pour chaque attribut concerné, précisez le type de sensibilité et la solution recommandée pour la publication.</p>"
+                },
+                {
+                    "type": "matrixdynamic",
+                    "name": "question2g12s",
+                    "titleLocation": "hidden",
+                    "visibleIf": "{question2g12s_bool} = 'Oui'",
+                    "rowCount": 1,
+                    "addRowText": "Ajouter une ligne",
+                    "removeRowText": "Supprimer",
+                    "addRowButtonLocation": "bottom",
+                    "columns": [
+                        { "name": "Entite", "title": "Entité", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Objets ethnographiques" },
+                        { "name": "Attribut", "title": "Attribut", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Description" },
+                        { "name": "TypeSensibilite", "title": "Type de sensibilité", "cellType": "dropdown", "choices": ["Restes humains ou données associées", "Savoirs traditionnels ou autochtones (TCEs, TK)", "Objets ou contenus sacrés / cultuels", "Contenu potentiellement offensant ou traumatisant", "Données liées à des événements traumatiques (guerre, génocide, violences)", "Données sous embargo ou restriction de recherche"], "hasOther": true, "otherText": "Autre", "optionsCaption": "ex : Savoirs traditionnels" },
+                        { "name": "Solution", "title": "Solution recommandée", "cellType": "dropdown", "choices": ["Publier avec annotation contextuelle", "Accès restreint (sur demande uniquement)", "Ne pas publier"], "optionsCaption": "ex : Annotation contextuelle" },
+                        { "name": "Commentaires", "title": "Commentaires", "cellType": "text", "placeHolder": "ex : consultation communautaire recommandée" }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "page_questionsg12",
+            "elements": [
+                {
+                    "type": "html",
+                    "name": "title_g12",
+                    "html": "<h2 class='q-title'>13. Évaluation de la publiabilité</h2>"
+                },
+                {
+                    "type": "html",
+                    "name": "intro_g12",
+                    "html": "<h3 class='q-subtitle'>13.1 – Publiable et priorité de publication</h3><p class='q-text'>Cette question vise à recueillir, pour chaque attribut du jeu de données, votre opinion initiale sur sa possibilité de publication sur la plateforme, ainsi que le niveau de priorité estimé pour sa diffusion. Les réponses doivent refléter votre opinion actuelle, fondée sur votre connaissance du jeu de données et de l'état de curation, sans constituer un engagement formel de publication.</p>"
+                },
+                {
+                    "type": "matrixdynamic",
+                    "name": "question1g12",
+                    "titleLocation": "hidden",
+                    "rowCount": 2,
+                    "addRowText": "Ajouter une ligne",
+                    "removeRowText": "Supprimer",
+                    "addRowButtonLocation": "bottom",
+                    "columns": [
+                        { "name": "Entite", "title": "Entité", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Œuvres" },
+                        { "name": "Attribut", "title": "Attributs", "cellType": "dropdown", "choices": [], "optionsCaption": "ex : Titre" },
+                        { "name": "Publiable", "title": "Publiable", "cellType": "dropdown", "choices": ["Oui", "Oui ultérieurement (raison légale)", "Oui ultérieurement (raison curatorielle)", "Non"], "hasOther": true, "otherText": "Autre :", "optionsCaption": "ex : Oui" },
+                        { "name": "Priorite", "title": "Priorité", "cellType": "dropdown", "choices": ["Prioritaire", "Secondaire / Moyennement prioritaire", "Non prioritaire"], "hasOther": true, "otherText": "Autre :", "optionsCaption": "ex : Prioritaire" },
+                        { "name": "Commentaires", "title": "Commentaires / détails", "cellType": "text", "placeHolder": "ex : donnée déjà normalisée" }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "page_fin",
+            "title": "14 - Récapitulatif",
+            "elements": [
+                {
+                    "type": "html",
+                    "name": "recap_nc_rules",
+                    "html": "<details style='margin-top:32px;border:1px solid #ddd;border-radius:6px;padding:0;font-family:Arial,sans-serif;font-size:13px;'><summary style='padding:12px 16px;cursor:pointer;font-weight:bold;color:#2c3e50;background:#f4f4f4;border-radius:6px;'>ℹ Comment est calculé le % NC (données non curées) ?</summary><div style='padding:16px;'><p style='margin:0 0 8px;color:#333;font-weight:bold;'>Un attribut contribue au % NC dans les cas suivants :</p><ul style='margin:0 0 16px;padding-left:20px;color:#555;line-height:1.8;'><li><strong>Question 7.1</strong> — l'attribut est associé à une expression d'incertitude de type <em>Texte libre</em></li><li><strong>Question 8.1</strong> — l'attribut présente des ambiguïtés dans ses valeurs multiples (cardinalité)</li><li><strong>Question 8.2</strong> — l'attribut présente des hétérogénéités sémantiques entre enregistrements</li><li><strong>Question 8.3</strong> — les attributs de son groupe présentent des relations ambiguës</li><li><strong>Question 9.1</strong> — ses valeurs de date ne sont pas toutes normalisées dans un format unique</li><li><strong>Question 9.2</strong> — son identifiant n'est pas unique (Unicité = Non)</li><li><strong>Question 9.3</strong> — plusieurs types d'identifiants externes coexistent pour le même attribut</li><li><strong>Question 9.4</strong> — plusieurs types de liens vers des ressources coexistent pour le même attribut</li><li><strong>Question 9.5</strong> — ses liens vers d'autres entités ne couvrent pas tous les enregistrements</li><li><strong>Question 9.7</strong> — ses valeurs ne sont pas toutes normalisées selon un vocabulaire contrôlé</li></ul><hr style='border:none;border-top:1px solid #eee;margin:12px 0;'/><p style='margin:0 0 8px;color:#333;font-weight:bold;'>Comment est calculé le % NC affiché ?</p><p style='margin:0 0 8px;color:#555;'>Un même attribut peut avoir des problèmes dans plusieurs questions à la fois. Par exemple : 45 % de ses enregistrements ont une ambiguïté (8.1) et 30 % ont des dates non normalisées (9.1). Comme on ne sait pas si ce sont les mêmes enregistrements, additionner les deux risquerait de compter certains deux fois.</p><p style='margin:0;color:#555;'>Pour éviter cela, le % NC affiché correspond à <strong>la dimension la plus problématique</strong> — ici 45 %. Cela garantit que le chiffre affiché est toujours <strong>une estimation prudente par le bas</strong> : au moins ce pourcentage de données est non curé, peut-être davantage.</p></div></details>"
+                },
+                {
+                    "type": "html",
+                    "name": "recap_container",
+                    "html": "<div id='recap-wrapper' style='font-family:Arial,sans-serif;padding:12px;'><h2 style='margin:0 0 16px;color:#2c3e50;'>Récapitulatif du diagnostic</h2><p style='color:#555;margin-bottom:16px;font-size:13px;'>Téléchargez les résultats sous forme de quatre fichiers CSV distincts :</p><div style='display:flex;flex-wrap:wrap;gap:10px;margin-bottom:24px;'><button onclick='window.downloadCSVGeneral()' style='background:#2c3e50;color:#fff;border:none;padding:10px 18px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold;'>⬇ Informations générales</button><button onclick='window.downloadCSVEntites()' style='background:#2980b9;color:#fff;border:none;padding:10px 18px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold;'>⬇ Entités</button><button onclick='window.downloadCSVAttributs()' style='background:#27ae60;color:#fff;border:none;padding:10px 18px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold;'>⬇ Attributs</button><button onclick='window.downloadCSVGroupes()' style='background:#8e44ad;color:#fff;border:none;padding:10px 18px;border-radius:6px;cursor:pointer;font-size:13px;font-weight:bold;'>⬇ Groupes d'attributs</button></div><p style='color:#666;margin-bottom:16px;font-size:13px;'>Visualisation des entités (nœuds sombres), de leurs attributs (nœuds colorés selon la publiabilité) et des relations entre entités (flèches bleues). Survolez un attribut pour afficher ses détails.</p><div id='survey-viz' style='width:100%;background:#fafafa;border:1px solid #e0e0e0;border-radius:8px;overflow-x:auto;'></div></div>"
+                }
+            ]
+        }
+      ]
+    };
+
+var survey = new Survey.Model(surveyJSON);
+
+// Actualiza las opciones de la columna 'modele' según los modelos seleccionados en question2g3
+function updateQuestion1g4(survey) {
+    var question2g3 = survey.getQuestionByName("question2g3");
+    var question1g4 = survey.getQuestionByName("question1g4");
+    if (!question2g3 || !question1g4) return;
+
+    var selectedSystems = question2g3.value || [];
+
+    var modeleColumn = question1g4.columns.find(c => c.name === "modele");
+    if (!modeleColumn) return;
+
+    modeleColumn.choices = selectedSystems;
+
+    question1g4.data.forEach(function(row) {
+        if (!selectedSystems.includes(row.modele)) {
+            row.modele = "";
+        }
+    });
+}
+
+// Actualiza las opciones de la columna 'systeme' según los sistemas seleccionados en question1g3
+function updateQuestion1g4Systeme(survey) {
+    var question1g3 = survey.getQuestionByName("question1g3");
+    var question1g4 = survey.getQuestionByName("question1g4");
+    if (!question1g3 || !question1g4) return;
+
+    var selected = question1g3.value || [];
+    var selectedSystems = Array.isArray(selected)
+        ? selected.filter(function(v) { return v !== "other"; })
+        : [];
+
+    var systemeColumn = question1g4.columns.find(function(c) { return c.name === "systeme"; });
+    if (!systemeColumn) return;
+
+    systemeColumn.choices = selectedSystems;
+
+    if (question1g4.data) {
+        question1g4.data.forEach(function(row) {
+            if (row.systeme && selectedSystems.indexOf(row.systeme) === -1) {
+                row.systeme = "";
+            }
+        });
+    }
+}
+
+function updateQuestion1g5(survey) {
+    var question1g4 = survey.getQuestionByName("question1g4");
+    var question1g5 = survey.getQuestionByName("question1g5");
+
+    if (!question1g4 || !question1g5) return;
+
+    // Tomamos los valores de 'entite' de las filas visibles
+    var entites = question1g4.visibleRows.map(row => row.value.entite).filter(v => v);
+
+    // Actualizamos la columna 'Entites'
+    var entitesColumn = question1g5.columns.find(c => c.name === "Entites");
+    if (!entitesColumn) return;
+
+    entitesColumn.choices = entites;
+}
+
+// Helpers génériques pour mise à jour dynamique des dropdowns
+function getAttrsByType(survey, filterType) {
+    var q5 = survey.getQuestionByName("question1g5");
+    if (!q5) return [];
+    var rows = q5.value || [];
+    if (filterType) {
+        return rows.filter(function(r) { return r.TypeDonnee === filterType; })
+                   .map(function(r) { return r.Attributs; }).filter(function(v) { return v; });
+    }
+    return rows.map(function(r) { return r.Attributs; }).filter(function(v) { return v; });
+}
+
+function getAttrsByGroupe(survey, groupe) {
+    if (!groupe) return [];
+    var q5 = survey.getQuestionByName("question1g5");
+    if (!q5 || !q5.value) return [];
+    return q5.value
+        .filter(function(r) { return r.Grupo === groupe; })
+        .map(function(r) { return r.Attributs; })
+        .filter(function(v) { return v; });
+}
+
+function updateColumnChoices(survey, questionName, columnName, choices) {
+    var q = survey.getQuestionByName(questionName);
+    if (!q) return;
+    var col = q.columns.find(function(c) { return c.name === columnName; });
+    if (!col) return;
+    col.choices = choices;
+}
+
+// Accède à la question d'une cellule spécifique dans une ligne de matrice
+function getCellQuestion(row, matrixQ, colName) {
+    if (row.getQuestionByColumnName) {
+        var q = row.getQuestionByColumnName(colName);
+        if (q) return q;
+    }
+    if (row.cells) {
+        for (var i = 0; i < matrixQ.columns.length; i++) {
+            if (matrixQ.columns[i].name === colName) {
+                var cell = row.cells[i];
+                return (cell && cell.question) ? cell.question : cell;
+            }
+        }
+    }
+    return null;
+}
+
+// Attributs filtrés par entité + type (null = tous types)
+function getAttrsByEntiteAndType(survey, entite, filterType) {
+    var q5 = survey.getQuestionByName("question1g5");
+    if (!q5 || !q5.value) return [];
+    return q5.value.filter(function(r) {
+        var matchEntity = !entite || r.Entites === entite;
+        var matchType   = !filterType || r.TypeDonnee === filterType;
+        return matchEntity && matchType && r.Attributs;
+    }).map(function(r) { return r.Attributs; }).filter(function(v) { return v; });
+}
+
+// Attributs filtrés par entité + groupe (pour 8.3)
+function getAttrsByGroupeAndEntite(survey, groupe, entite) {
+    if (!groupe) return [];
+    var q5 = survey.getQuestionByName("question1g5");
+    if (!q5 || !q5.value) return [];
+    return q5.value.filter(function(r) {
+        return r.Grupo === groupe && (!entite || r.Entites === entite) && r.Attributs;
+    }).map(function(r) { return r.Attributs; }).filter(function(v) { return v; });
+}
+
+var LINK_TYPES = [
+    "Identifiant interne",
+    "Identifiant ou lien externe",
+    "Lien vers une ressource numérique",
+    "Lien vers une autre entité/table"
+];
+
+// Config Entite→Attribut pour chaque question des sections 8–12
+var entityAttrConfig = {
+    "question1g7":  { attrCol: "Attribut",  typeFilter: null },
+    "question1g8":  { attrCol: "Attribut",  typeFilter: null },
+    "question2g8":  { attrCol: "Attribut",  typeFilter: null },
+    "question1g9":  { attrCol: "Attribut",  typeFilter: "Date" },
+    "question2g9":  { attrCol: "Attribut",  typeFilter: "Identifiant interne" },
+    "question3g9":  { attrCol: "Attribut",  typeFilter: "Identifiant ou lien externe" },
+    "question4g9":  { attrCol: "Attribut",  typeFilter: "Lien vers une ressource numérique" },
+    "question3g10": { attrCol: "Attribut",  typeFilter: "Lien vers une ressource numérique" },
+    "question6g9":  { attrCol: "Attribut1", typeFilter: "Lien vers une autre entité/table" },
+    "question7g9":  { attrCol: "Attribut",  typeFilter: "Texte libre" },
+    "question8g9":  { attrCol: "Attribut",  typeFilter: "Vocabulaire contrôlé" },
+    "question1g10b": { attrCol: "Attribut",  typeFilter: null },
+    "question2g10": { attrCol: "Attribut",  typeFilters: ["Identifiant interne", "Identifiant ou lien externe"] },
+    "question1g11b": { attrCol: "Attribut",  typeFilter: null },
+    "question1g12s":  { attrCol: "Attribut",  typeFilter: null },
+    "question2g12s":  { attrCol: "Attribut",  typeFilter: null },
+    "question1g12":  { attrCol: "Attribut",  typeFilter: null }
+};
+
+// Mise à jour des entités pour les questions 6.1 (doublons) et 7.1 (incertitudes)
+function updateEntiteDropdowns(survey) {
+    var q4 = survey.getQuestionByName("question1g4");
+    if (!q4) return;
+    var entites = q4.visibleRows.map(function(r) { return r.value.entite; }).filter(function(v) { return v; });
+
+    // 6.1 – Doublons (question1g6)
+    var q6 = survey.getQuestionByName("question1g6");
+    if (q6) {
+        var col6 = q6.columns.find(function(c) { return c.name === "entite"; });
+        if (col6) {
+            col6.choices = entites;
+        }
+    }
+
+    // 9.6 – Lien vers un autre enregistrement (question6g9) — cible (Entites) + source (Entite)
+    var q6g9 = survey.getQuestionByName("question6g9");
+    if (q6g9) {
+        var col6g9target = q6g9.columns.find(function(c) { return c.name === "Entites"; });
+        if (col6g9target) col6g9target.choices = entites;
+        var col6g9source = q6g9.columns.find(function(c) { return c.name === "Entite"; });
+        if (col6g9source) col6g9source.choices = entites;
+    }
+
+    // Sections 8–12 — colonne Entite pour toutes les questions avec entityAttrConfig
+    Object.keys(entityAttrConfig).forEach(function(qName) {
+        var qx = survey.getQuestionByName(qName);
+        if (!qx) return;
+        var colEntite = qx.columns.find(function(c) { return c.name === "Entite"; });
+        if (colEntite) colEntite.choices = entites;
+    });
+
+    // question3g8 — colonne Entite (gérée via le bloc ci-dessus) + Groupe reste vide (filtré par Entite)
+}
+
+
+// Handler générique — Entite → Attribut/Attribut1 pour sections 8–12
+var attrChoicesByQuestion = {};
+
+survey.onMatrixCellValueChanged.add(function(sender, options) {
+    var config = entityAttrConfig[options.question.name];
+    if (!config || options.columnName !== "Entite") return;
+
+    var selectedEntite = options.value;
+    var q5 = sender.getQuestionByName("question1g5");
+    var attrs = [];
+    if (q5 && q5.value) {
+        attrs = q5.value.filter(function(r) {
+            var matchEntity = !selectedEntite || r.Entites === selectedEntite;
+            var matchType = config.typeFilters
+                ? config.typeFilters.indexOf(r.TypeDonnee) !== -1
+                : (!config.typeFilter || r.TypeDonnee === config.typeFilter);
+            return matchEntity && matchType && r.Attributs;
+        }).map(function(r) { return r.Attributs; }).filter(function(v) { return v; });
+    }
+
+    var qName = options.question.name;
+    var rowIndex = options.row.rowIndex;
+    if (!attrChoicesByQuestion[qName]) attrChoicesByQuestion[qName] = {};
+    attrChoicesByQuestion[qName][rowIndex] = attrs;
+
+    var attrQ = getCellQuestion(options.row, options.question, config.attrCol);
+    if (attrQ) {
+        attrQ.choices = attrs;
+        if (attrQ.clearValue) attrQ.clearValue(); else attrQ.value = undefined;
+    }
+});
+
+// Handler pour question3g8 — filtrage Attribut1/Attribut2 par Entite et Groupe
+survey.onMatrixCellValueChanged.add(function(sender, options) {
+    if (options.question.name !== "question3g8") return;
+
+    var q8_3 = options.question;
+    var row = options.row;
+    var rowData = q8_3.value ? q8_3.value[row.rowIndex - 1] : null;
+
+    if (options.columnName === "Entite") {
+        var selectedEntite = options.value;
+        var q5 = sender.getQuestionByName("question1g5");
+        var groupes = [];
+        if (q5 && q5.value) {
+            var rawGroupes = q5.value
+                .filter(function(r) { return (!selectedEntite || r.Entites === selectedEntite) && r.Grupo; })
+                .map(function(r) { return r.Grupo; });
+            groupes = rawGroupes.filter(function(v, i) { return rawGroupes.indexOf(v) === i; });
+        }
+        var groupeQ = getCellQuestion(row, q8_3, "Groupe");
+        if (groupeQ) {
+            groupeQ.choices = groupes;
+            if (groupeQ.clearValue) groupeQ.clearValue(); else groupeQ.value = undefined;
+        }
+        var attr1Q = getCellQuestion(row, q8_3, "Attribut1");
+        var attr2Q = getCellQuestion(row, q8_3, "Attribut2");
+        if (attr1Q) { attr1Q.choices = []; if (attr1Q.clearValue) attr1Q.clearValue(); else attr1Q.value = undefined; }
+        if (attr2Q) { attr2Q.choices = []; if (attr2Q.clearValue) attr2Q.clearValue(); else attr2Q.value = undefined; }
+    }
+
+    if (options.columnName === "Groupe") {
+        var currentEntite = rowData ? rowData.Entite : null;
+        var groupeAttrs = getAttrsByGroupeAndEntite(sender, options.value, currentEntite);
+        var attr1Q = getCellQuestion(row, q8_3, "Attribut1");
+        var attr2Q = getCellQuestion(row, q8_3, "Attribut2");
+        if (attr1Q) {
+            attr1Q.choices = groupeAttrs;
+            if (attr1Q.clearValue) attr1Q.clearValue(); else attr1Q.value = undefined;
+        }
+        if (attr2Q) {
+            attr2Q.choices = groupeAttrs;
+            if (attr2Q.clearValue) attr2Q.clearValue(); else attr2Q.value = undefined;
+        }
+    }
+
+    if (options.columnName === "Attribut1") {
+        var currentEntite = rowData ? rowData.Entite : null;
+        var currentGroupe = rowData ? rowData.Groupe : null;
+        var groupeAttrs = getAttrsByGroupeAndEntite(sender, currentGroupe, currentEntite);
+        var filtered = options.value
+            ? groupeAttrs.filter(function(a) { return a !== options.value; })
+            : groupeAttrs;
+        var attr2Q = getCellQuestion(row, q8_3, "Attribut2");
+        if (attr2Q) {
+            attr2Q.choices = filtered;
+            if (attr2Q.value === options.value) {
+                if (attr2Q.clearValue) attr2Q.clearValue(); else attr2Q.value = undefined;
+            }
+        }
+    }
+});
+
+// Quand une nouvelle cellule Attribut est créée → appliquer les choix mémorisés
+survey.onMatrixCellCreated.add(function(sender, options) {
+    // Sections 7–12
+    var config = entityAttrConfig[options.question.name];
+    if (!config || options.columnName !== config.attrCol) return;
+    var saved = attrChoicesByQuestion[options.question.name];
+    if (saved && saved[options.row.rowIndex] !== undefined) {
+        options.cellQuestion.choices = saved[options.row.rowIndex];
+    }
+});
+
+// Variables booléennes par type de donnée — utilisées dans les visibleIf des sections 9 et 10
+function updateTypeVariables(survey) {
+    var q5 = survey.getQuestionByName("question1g5");
+    var rows = (q5 && q5.value) ? q5.value : [];
+    var types = rows.map(function(r) { return r.TypeDonnee; }).filter(function(v) { return v; });
+    survey.setVariable("hasDate",                    types.indexOf("Date") !== -1);
+    survey.setVariable("hasIdentifiantInterne",      types.indexOf("Identifiant interne") !== -1);
+    survey.setVariable("hasIdentifiantExterne",      types.indexOf("Identifiant ou lien externe") !== -1);
+    survey.setVariable("hasLienRessource", types.indexOf("Lien vers une ressource numérique") !== -1);
+    survey.setVariable("hasLienEntite",              types.indexOf("Lien vers une autre entité/table") !== -1);
+    survey.setVariable("hasTexteLibre",              types.indexOf("Texte libre") !== -1);
+    survey.setVariable("hasVocabulaire",             types.indexOf("Vocabulaire contrôlé") !== -1);
+    var linkTypes = ["Identifiant interne", "Identifiant ou lien externe", "Lien vers une ressource numérique", "Lien vers une autre entité/table"];
+    survey.setVariable("hasLienOuIdentifiant",       types.some(function(t) { return linkTypes.indexOf(t) !== -1; }));
+}
+
+// Mise à jour de tous les dropdowns d'attributs pour les sections 7 à 12
+function updateAllAttributeDropdowns(survey) {
+    var allAttrs = getAttrsByType(survey, null);
+
+    // Section 7 – seules les entités sont mises à jour ici; les attributs se filtrent par entité via onMatrixCellValueChanged
+    updateEntiteDropdowns(survey);
+
+    // Section 8
+    updateColumnChoices(survey, "question1g8", "Attribut", allAttrs);
+    updateColumnChoices(survey, "question2g8", "Attribut", allAttrs);
+    // Attribut1 et Attribut2 de question3g8 se filtrent par Groupe via onMatrixCellValueChanged
+
+    // Groupes pour 8.3 — colonne-niveau uniquement si aucune entité sélectionnée
+    var q5 = survey.getQuestionByName("question1g5");
+    if (q5) {
+        var rows = q5.value || [];
+        var rowsWithGroupe = rows.filter(function(r) { return r.Grupo; });
+        var groupes = rowsWithGroupe.map(function(r) { return r.Grupo; });
+        var uniqueGroupes = groupes.filter(function(v, i) { return groupes.indexOf(v) === i; });
+        updateColumnChoices(survey, "question3g8", "Groupe", uniqueGroupes);
+        survey.setVariable("hasGroupe", uniqueGroupes.length > 0);
+        var entitesAvecGroupe = rowsWithGroupe.map(function(r) { return r.Entites; }).filter(function(v) { return v; });
+        var uniqueEntitesAvecGroupe = entitesAvecGroupe.filter(function(v, i) { return entitesAvecGroupe.indexOf(v) === i; });
+        updateColumnChoices(survey, "question3g8", "Entite", uniqueEntitesAvecGroupe);
+    } else {
+        survey.setVariable("hasGroupe", false);
+    }
+    // Attribut1/Attribut2 de question3g8 se filtrent par Entite+Groupe via onMatrixCellValueChanged
+
+    // Section 9 - filtrado por tipo de dato
+    updateColumnChoices(survey, "question1g9", "Attribut", getAttrsByType(survey, "Date"));
+    updateColumnChoices(survey, "question2g9", "Attribut", getAttrsByType(survey, "Identifiant interne"));
+    updateColumnChoices(survey, "question3g9", "Attribut", getAttrsByType(survey, "Identifiant ou lien externe"));
+    var ressourceAttrs = getAttrsByType(survey, "Lien vers une ressource numérique");
+    updateColumnChoices(survey, "question4g9",  "Attribut", ressourceAttrs);
+    updateColumnChoices(survey, "question3g10", "Attribut", ressourceAttrs);
+    updateColumnChoices(survey, "question6g9", "Attribut1", getAttrsByType(survey, "Lien vers une autre entité/table"));
+    updateColumnChoices(survey, "question7g9", "Attribut", getAttrsByType(survey, "Texte libre"));
+    updateColumnChoices(survey, "question8g9", "Attribut", getAttrsByType(survey, "Vocabulaire contrôlé"));
+
+    // Section 10
+    updateColumnChoices(survey, "question1g10b", "Attribut", allAttrs);
+    var identifiantAttrs = getAttrsByType(survey, "Identifiant interne").concat(
+        getAttrsByType(survey, "Identifiant ou lien externe")
+    ).filter(function(v, i, a) { return a.indexOf(v) === i; });
+    updateColumnChoices(survey, "question2g10", "Attribut", identifiantAttrs);
+
+    // Section 11
+    updateColumnChoices(survey, "question1g11b", "Attribut", allAttrs);
+
+    // Section 12 sensible
+    updateColumnChoices(survey, "question1g12s", "Attribut", allAttrs);
+    updateColumnChoices(survey, "question2g12s", "Attribut", allAttrs);
+
+    // Section 13
+    updateColumnChoices(survey, "question1g12", "Attribut", allAttrs);
+}
+
+// Handler consolidado para todas las actualizaciones dinámicas
+survey.onValueChanged.add(function(sender, options) {
+    if (options.name === "question1g3") {
+        updateQuestion1g4Systeme(sender);
+    }
+    if (options.name === "question2g3") {
+        updateQuestion1g4(sender);
+    }
+    if (options.name === "question1g4") {
+        updateQuestion1g5(sender);
+        updateEntiteDropdowns(sender);
+    }
+    if (options.name === "question1g5") {
+        updateAllAttributeDropdowns(sender);
+        updateTypeVariables(sender);
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CSV helpers
+// ─────────────────────────────────────────────────────────────────────────────
+function csvEsc(v) {
+    if (v == null) return '';
+    var s = String(v);
+    return (s.indexOf(';') !== -1 || s.indexOf('"') !== -1 || s.indexOf('\n') !== -1)
+        ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+function csvQval(surveyInstance, name) {
+    var q = surveyInstance.getQuestionByName(name);
+    return (q && q.value) ? q.value : [];
+}
+function csvDownload(filename, rows) {
+    var BOM = '﻿';
+    var csv = BOM + rows.map(function(r) { return r.map(csvEsc).join(';'); }).join('\r\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(a.href);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CSV 1 — Informations générales (une seule ligne)
+// ─────────────────────────────────────────────────────────────────────────────
+function csvGeneral(s) {
+    var d = s.data || {};
+    var headers = ['1.1.- Institution', '1.2.- Email', '1.3.- Personne',
+                   '2.1.- Domaine', '2.2.- Description_Domain'];
+    var domaines = d.question1g2;
+    var domaineStr = Array.isArray(domaines) ? domaines.join(' | ') : (domaines || '');
+    var row = [d.question1g1 || '', d.question2g1 || '', d.question3g1 || '',
+               domaineStr, d.question2g2 || ''];
+    csvDownload('CSV_informations_generales.csv', [headers, row]);
+}
+window.downloadCSVGeneral = function() { csvGeneral(survey); };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CSV 2 — Entités (une ligne par entité)
+// ─────────────────────────────────────────────────────────────────────────────
+function csvEntites(s) {
+    // Doublons par entité (question1g6)
+    var doublons = {};
+    csvQval(s, 'question1g6').forEach(function(r) {
+        if (r.entite) doublons[r.entite] = { volume: r.volume || '', commentaires: r.commentaires || '' };
+    });
+
+    var headers = ['4.1.- Entité', '4.1.- Volume', '4.1.- Modèle', '4.1.- Système_gestion',
+                   '6.1.- Volume_doublons', '6.1.- Commentaires_doublons'];
+    var rows = [headers];
+    csvQval(s, 'question1g4').forEach(function(r) {
+        if (!r.entite) return;
+        var d = doublons[r.entite] || { volume: '', commentaires: '' };
+        rows.push([r.entite, r.volume || '', r.modele || '', r.systeme || '',
+                   d.volume, d.commentaires]);
+    });
+    csvDownload('CSV_entites.csv', rows);
+}
+window.downloadCSVEntites = function() { csvEntites(survey); };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CSV 3 — Attributs (une ligne par attribut, colonnes multi-valeur numérotées)
+// ─────────────────────────────────────────────────────────────────────────────
+function csvAttributs(s) {
+
+    // Lookup: attr → [rows] for multi-value questions
+    function buildMap(qName, keyCol) {
+        var map = {};
+        csvQval(s, qName).forEach(function(r) {
+            var k = r[keyCol]; if (!k) return;
+            if (!map[k]) map[k] = [];
+            map[k].push(r);
+        });
+        return map;
+    }
+    function maxCount(map) {
+        var max = 0;
+        Object.keys(map).forEach(function(k) { if (map[k].length > max) max = map[k].length; });
+        return Math.max(max, 1);
+    }
+
+    // Entity model lookup (4.1)
+    var entityModels = {};
+    csvQval(s, 'question1g4').forEach(function(r) {
+        if (r.entite) entityModels[r.entite] = r.modele || '';
+    });
+
+    // Multi-value maps
+    var m7  = buildMap('question1g7',  'Attribut');
+    var m81 = buildMap('question1g8',  'Attribut');
+    var m82 = buildMap('question2g8',  'Attribut');
+    var m91 = buildMap('question1g9',  'Attribut');
+    var m92 = buildMap('question2g9',  'Attribut');
+    var m93 = buildMap('question3g9',  'Attribut');
+    var m94  = buildMap('question4g9',  'Attribut');
+    var m103 = buildMap('question3g10', 'Attribut');
+    var m98 = buildMap('question8g9',  'Attribut');
+
+    // Multi-value map — 9.5 lien entité (question6g9)
+    var m96 = buildMap('question6g9',  'Attribut1');
+
+    // Single-value maps
+    var m97 = buildMap('question7g9',  'Attribut');  // single row per attr
+    var m10b = buildMap('question1g10b', 'Attribut');
+    var m102= buildMap('question2g10', 'Attribut');
+    var m11b  = buildMap('question1g11b', 'Attribut');
+    var m12s1 = buildMap('question1g12s', 'Attribut');
+    var m12s2 = buildMap('question2g12s', 'Attribut');
+    var m12   = buildMap('question1g12',  'Attribut');
+
+    var N7  = maxCount(m7);
+    var N81 = maxCount(m81);
+    var N82 = maxCount(m82);
+    var N91 = maxCount(m91);
+    var N92 = maxCount(m92);
+    var N93 = maxCount(m93);
+    var N94 = maxCount(m94);
+    var N95 = maxCount(m96);
+    var N98 = maxCount(m98);
+
+    // Helper: generate numbered header suffix
+    function sfx(i) { return i === 0 ? '' : String(i + 1); }
+
+    // Build headers
+    var headers = [
+        '4.1.- Entité_Modèle',
+        '5.1.- Attribut_Nom', '5.1.- Attribut_Nom_interne',
+        '5.1.- Attribut_ObliOpti', '5.1.- Attribut_Type',
+        '5.1.- Attribut_Groupe', '5.1.- Attribut_Langue',
+        '5.1.- Attribut_Volume', '5.1.- Attribut_Description'
+    ];
+    for (var i = 0; i < N7;  i++) headers.push(
+        '7.1.- Incertitud_TypeExpression' + sfx(i), '7.1.- Incertitud_Expression' + sfx(i),
+        '7.1.- Incertitud_Volume' + sfx(i),    '7.1.- Incertitud_Exemple' + sfx(i));
+    for (var i = 0; i < N81; i++) headers.push(
+        '8.1.- Ambiguïté_cardinalité_RelationType' + sfx(i),
+        '8.1.- Ambiguïté_cardinalité_Volume' + sfx(i));
+    for (var i = 0; i < N82; i++) headers.push(
+        '8.2.- Ambiguïté_valeurs_RelationType' + sfx(i),
+        '8.2.- Ambiguïté_valeurs_Volume' + sfx(i));
+    for (var i = 0; i < N91; i++) headers.push(
+        '9.1.- Normalisation_Dates_Formats' + sfx(i),
+        '9.1.- Normalisation_Dates_Volume'  + sfx(i));
+    for (var i = 0; i < N92; i++) headers.push(
+        '9.2.- Normalisation_Identifiant_Structure' + sfx(i),
+        '9.2.- Normalisation_Identifiant_Unicité'   + sfx(i),
+        '9.2.- Normalisation_Identifiant_Clé'       + sfx(i),
+        '9.2.- Normalisation_Identifiant_Volume'    + sfx(i));
+    for (var i = 0; i < N93; i++) headers.push(
+        '9.3.- Normalisation_LienExterne_Type'   + sfx(i),
+        '9.3.- Normalisation_LienExterne_Volume' + sfx(i));
+    for (var i = 0; i < N94; i++) headers.push(
+        '9.4.- Normalisation_LienRessource_TypeLien' + sfx(i),
+        '9.4.- Normalisation_LienRessource_Ressource'+ sfx(i),
+        '9.4.- Normalisation_LienRessource_Volume'   + sfx(i));
+    for (var i = 0; i < N95; i++) headers.push(
+        '9.5.- Normalisation_LienEntite_Entités' + sfx(i),
+        '9.5.- Normalisation_LienEntite_Volume'  + sfx(i));
+    headers.push(
+        '9.6.- Normalisation_TextLibre_NFacettes');
+    for (var i = 0; i < N98; i++) headers.push(
+        '9.7.- Normalisation_Vocabulaire_Type'          + sfx(i),
+        '9.7.- Normalisation_Vocabulaire_Volume'         + sfx(i),
+        '9.7.- Normalisation_Vocabulaire_NValeurs'       + sfx(i),
+        '9.7.- Normalisation_Vocabulaire_DocumentInterne'+ sfx(i));
+    headers.push(
+        '10.1.- Cycle_Périodicité_globale',
+        '10.1b.- Cycle_Périodicité_Périodicité', '10.1b.- Cycle_Commentaires',
+        '10.2.- Cycle_Lien_Durabilité', '10.2.- Cycle_Lien_Commentaires',
+        '10.3.- Accessibilité_Ressource', '10.3.- Accessibilité_Commentaires',
+        '11.1.- Licence_globale',
+        '11.1b.- Restriction_Type', '11.1b.- Restriction_Commentaires',
+        '12.1.- DonnéesPerso_Type', '12.1.- DonnéesPerso_Solution', '12.1.- DonnéesPerso_Commentaires',
+        '12.2.- Cultsensibles_Type', '12.2.- Cultsensibles_Solution', '12.2.- Cultsensibles_Commentaires',
+        '13.1.- Publiabilité_Publicable', '13.1.- Publiabilité_Priorité',
+        '13.1.- Publiabilité_Commentaires');
+
+    // Helper: fill N blocks of multi-value data
+    function fillMulti(rows, n, extractor) {
+        for (var i = 0; i < n; i++) {
+            extractor(rows[i] || null).forEach(function(v) { row.push(v); });
+        }
+    }
+
+    var csvRows = [headers];
+    var row; // hoisted reference for fillMulti
+
+    csvQval(s, 'question1g5').forEach(function(r) {
+        if (!r.Attributs) return;
+        var attr   = r.Attributs;
+        var entity = r.Entites || '';
+        var model  = entityModels[entity] || '';
+
+        row = [
+            entity + (model ? ' (' + model + ')' : ''),
+            attr, r.NomInterne || '', r.Obligatoire || '', r.TypeDonnee || '',
+            r.Grupo || '', r.Langue || '', r.Volume || '', r.Description || ''
+        ];
+
+        // 7.1 incertitudes
+        fillMulti(m7[attr]  || [], N7,  function(x) { return [x ? x.IncertitudeStructure||'' : '', x ? x.IncertitudeExpression||'' : '', x ? x.Volume||'' : '', x ? x.Exemple||'' : '']; });
+        // 8.1 ambiguïtés cardinalité
+        fillMulti(m81[attr] || [], N81, function(x) {
+            var rt = x ? (Array.isArray(x.RelationType) ? x.RelationType.join(' | ') : (x.RelationType||'')) : '';
+            return [rt, x ? x.Volume||'' : ''];
+        });
+        // 8.2 ambiguïtés valeurs
+        fillMulti(m82[attr] || [], N82, function(x) {
+            var rel = x ? (Array.isArray(x.Relation) ? x.Relation.join(' | ') : (x.Relation||'')) : '';
+            return [rel, x ? x.Volume||'' : ''];
+        });
+        // 9.1 dates
+        fillMulti(m91[attr] || [], N91, function(x) { return [x ? x.FormatDate||'' : '', x ? x.Volume||'' : '']; });
+        // 9.2 identifiant interne
+        fillMulti(m92[attr] || [], N92, function(x) {
+            var sc = x ? (Array.isArray(x.StructureComposition) ? x.StructureComposition.join(' | ') : (x.StructureComposition||'')) : '';
+            return [sc, x ? x.Unicite||'' : '', x ? x.CleComposite||'' : '', x ? x.Volume||'' : ''];
+        });
+        // 9.3 lien externe
+        fillMulti(m93[attr] || [], N93, function(x) { return [x ? x.TypeIdentifiant||'' : '', x ? x.Volume||'' : '']; });
+        // 9.4 ressource numérique (interne + externe fusionnés)
+        fillMulti(m94[attr] || [], N94, function(x) { return [x ? x.TypeLien||'' : '', x ? x.Ressource||'' : '', x ? x.Volume||'' : '']; });
+        // 9.5 lien entité
+        fillMulti(m96[attr] || [], N95, function(x) { return [x ? x.Entites||'' : '', x ? x.Volume||'' : '']; });
+        // 9.6 texte libre (single)
+        var r97 = (m97[attr] || [])[0] || {};
+        row.push(r97.NbFacettes||'');
+        // 9.7 vocabulaire
+        fillMulti(m98[attr] || [], N98, function(x) {
+            var doc = x && x.DocumentInterne;
+            var docStr = Array.isArray(doc) && doc.length > 0 ? doc.map(function(f){ return f.name||'fichier'; }).join(', ') : (doc && doc.name ? doc.name : '');
+            return [x ? x.TypeVocabulaire||'' : '', x ? x.Volume||'' : '', x ? x.NbValeurs||'' : '', docStr];
+        });
+        // 10.1, 10.2, 10.3, 11, 12, 13
+        var r10b  = (m10b[attr]  || [])[0] || {};
+        var r102  = (m102[attr]  || [])[0] || {};
+        var r103  = (m103[attr]  || [])[0] || {};
+        var r11b  = (m11b[attr]  || [])[0] || {};
+        var r12s1 = (m12s1[attr] || [])[0] || {};
+        var r12s2 = (m12s2[attr] || [])[0] || {};
+        var r12   = (m12[attr]   || [])[0] || {};
+        var periodiciteGlobale = s.getQuestionByName('question1g10a') ? (s.getQuestionByName('question1g10a').value || '') : '';
+        var licenceGlobale = s.getQuestionByName('question1g11a') ? (s.getQuestionByName('question1g11a').value || '') : '';
+        row.push(periodiciteGlobale,
+                 r10b.Periodicite||'', r10b.Commentaires||'',
+                 r102.Durabilite||'', r102.Commentaires||'',
+                 r103.Accessibilite||'', r103.Commentaires||'',
+                 licenceGlobale,
+                 r11b.Restriction||'', r11b.Commentaires||'',
+                 r12s1.TypeDonneePerso||'', r12s1.Solution||'', r12s1.Commentaires||'',
+                 r12s2.TypeSensibilite||'', r12s2.Solution||'', r12s2.Commentaires||'',
+                 r12.Publiable||'', r12.Priorite||'', r12.Commentaires||'');
+
+        csvRows.push(row);
+    });
+
+    csvDownload('CSV_attributs.csv', csvRows);
+}
+window.downloadCSVAttributs = function() { csvAttributs(survey); };
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CSV 4 — Groupes d'attributs (question3g8 — 8.3)
+// ─────────────────────────────────────────────────────────────────────────────
+function csvGroupes(s) {
+    var headers = [
+        '8.3.- AmbiguïtéGroupe_Entité',
+        '8.3.- AmbiguïtéGroupe_Groupe',
+        '8.3.- AmbiguïtéGroupe_Attribut1',
+        '8.3.- AmbiguïtéGroupe_Attribut2',
+        '8.3.- AmbiguïtéGroupe_Type de relation',
+        '8.3.- AmbiguïtéGroupe_Volume'
+    ];
+    var rows = [headers];
+    csvQval(s, 'question3g8').forEach(function(r) {
+        var typeRel = Array.isArray(r.TypeRelation) ? r.TypeRelation.join(' | ') : (r.TypeRelation || '');
+        rows.push([
+            r.Entite || '', r.Groupe || '', r.Attribut1 || '', r.Attribut2 || '',
+            typeRel, r.Volume || ''
+        ]);
+    });
+    csvDownload('CSV_groupes_attributs.csv', rows);
+}
+window.downloadCSVGroupes = function() { csvGroupes(survey); };
+
+// legacy alias (kept for safety)
+window.downloadCSV = window.downloadCSVAttributs;
+
+// Retour à la page de récapitulatif depuis la page de remerciement
+function backToRecap() {
+    survey.clear(false, false);
+    survey.currentPageNo = survey.pageCount - 1;
+}
+
+// ── URL Google Apps Script (remplacer par ton URL après déploiement) ──────────
+var GOOGLE_SHEETS_URL = 'https://script.google.com/macros/s/AKfycbzXMj4TeefnGOYUAMTccrsXm0pMkYJ7tiQKj2QPgMDTi3pM8JGmPFe37YqrCi6Gvvth/exec';
+
+// ── onComplete : sauvegarde automatique + téléchargement des 4 CSV ───────────
+survey.onComplete.add(function(sender) {
+    // 1. Sauvegarde localStorage (pour pouvoir revenir consulter)
+    localStorage.setItem(SAVE_KEY, JSON.stringify(sender.data));
+    localStorage.setItem(PAGE_KEY, String(sender.pageCount - 1));
+
+    // 2. Téléchargement automatique des 4 CSV (délai pour éviter blocage navigateur)
+    setTimeout(function() { window.downloadCSVGeneral();   }, 300);
+    setTimeout(function() { window.downloadCSVEntites();   }, 800);
+    setTimeout(function() { window.downloadCSVAttributs(); }, 1300);
+    setTimeout(function() { window.downloadCSVGroupes();   }, 1800);
+
+    // 3. Envoi JSON complet vers Google Sheets
+    fetch(GOOGLE_SHEETS_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            timestamp: new Date().toISOString(),
+            data: sender.data
+        })
+    }).catch(function(err) {
+        console.warn('Sauvegarde Google Sheets échouée :', err);
+    });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Visualization
+// ─────────────────────────────────────────────────────────────────────────────
+function renderViz(surveyInstance) {
+    var container = document.getElementById('survey-viz');
+    if (!container) return;
+    if (typeof d3 === 'undefined') {
+        container.innerHTML = '<p style="color:#c00;padding:20px;">D3.js non disponible — vérifiez votre connexion internet.</p>';
+        return;
+    }
+
+    // ── Collect data ──────────────────────────────────────────────────────────
+    function qval(name) {
+        var q = surveyInstance.getQuestionByName(name);
+        return (q && q.value) ? q.value : [];
+    }
+
+    var entityMeta = {};
+    qval('question1g4').forEach(function(r) {
+        if (r.entite) entityMeta[r.entite] = { volume: parseInt(r.Volume) || 0, doublons: 0 };
+    });
+    qval('question1g6').forEach(function(r) {
+        if (r.entite && entityMeta[r.entite]) entityMeta[r.entite].doublons = parseInt(r.volume) || 0;
+    });
+
+    var attrMeta = {};
+    qval('question1g5').forEach(function(r) {
+        if (r.Attributs) attrMeta[r.Attributs] = {
+            entity: r.Entites || '', type: r.TypeDonnee || '',
+            volume: parseInt(r.Volume) || 0,
+            publiable: null, priorite: null,
+            uncertain: false, ambiguous: false,
+            pctNC: null
+        };
+    });
+
+    qval('question1g12').forEach(function(r) {
+        if (r.Attribut && attrMeta[r.Attribut]) {
+            attrMeta[r.Attribut].publiable = r.Publiable || null;
+            attrMeta[r.Attribut].priorite  = r.Priorite  || null;
+        }
+    });
+
+    qval('question1g7').forEach(function(r) {
+        if (r.Attribut && attrMeta[r.Attribut]) attrMeta[r.Attribut].uncertain = true;
+    });
+
+    ['question1g8', 'question2g8'].forEach(function(n) {
+        qval(n).forEach(function(r) {
+            var k = r.Attribut || r.Attribut1;
+            if (k && attrMeta[k]) attrMeta[k].ambiguous = true;
+        });
+    });
+
+    // ── % NC par dimension (cota inferior : max sans double comptage) ─────────
+    var ncDim = {};
+    function ensureNC(attr) {
+        if (!ncDim[attr]) ncDim[attr] = {
+            incertitude: 0, ambiguiteCardinalite: 0, ambiguiteValeurs: 0,
+            ambiguiteGroupe: 0, dates: 0, identifiantInterne: 0,
+            identifiantExterne: 0, ressource: 0, lienEntite: 0, vocabulaire: 0
+        };
+    }
+
+    // 7.1 — Texte libre comme expression d'incertitude → volume = NC
+    qval('question1g7').forEach(function(r) {
+        var attr = r.Attribut; if (!attr || !attrMeta[attr]) return;
+        var expr = r.IncertitudeExpression;
+        var hasTexteLibre = Array.isArray(expr) ? expr.indexOf('Texte libre') !== -1 : expr === 'Texte libre';
+        if (hasTexteLibre) { ensureNC(attr); ncDim[attr].incertitude += parseInt(r.Volume) || 0; }
+    });
+
+    // 8.1 — NC = total - volume (volume = enregistrements avec relation correcte)
+    var sum81 = {};
+    qval('question1g8').forEach(function(r) {
+        var attr = r.Attribut; if (!attr || !attrMeta[attr]) return;
+        sum81[attr] = (sum81[attr] || 0) + (parseInt(r.Volume) || 0);
+    });
+    Object.keys(sum81).forEach(function(attr) {
+        ensureNC(attr);
+        ncDim[attr].ambiguiteCardinalite = Math.max(0, (attrMeta[attr].volume || 0) - sum81[attr]);
+    });
+
+    // 8.2 — NC = volume directement
+    qval('question2g8').forEach(function(r) {
+        var attr = r.Attribut; if (!attr || !attrMeta[attr]) return;
+        ensureNC(attr); ncDim[attr].ambiguiteValeurs += parseInt(r.Volume) || 0;
+    });
+
+    // 8.3 — NC = total - volume pour Attribut1 et Attribut2
+    var sum83a = {}, sum83b = {};
+    qval('question3g8').forEach(function(r) {
+        var vol = parseInt(r.Volume) || 0;
+        if (r.Attribut1 && attrMeta[r.Attribut1]) sum83a[r.Attribut1] = (sum83a[r.Attribut1] || 0) + vol;
+        if (r.Attribut2 && attrMeta[r.Attribut2]) sum83b[r.Attribut2] = (sum83b[r.Attribut2] || 0) + vol;
+    });
+    [sum83a, sum83b].forEach(function(sums) {
+        Object.keys(sums).forEach(function(attr) {
+            ensureNC(attr);
+            ncDim[attr].ambiguiteGroupe = Math.max(ncDim[attr].ambiguiteGroupe,
+                Math.max(0, (attrMeta[attr].volume || 0) - sums[attr]));
+        });
+    });
+
+    // 9.1 — NC = total - volume
+    var sum91 = {};
+    qval('question1g9').forEach(function(r) {
+        var attr = r.Attribut; if (!attr || !attrMeta[attr]) return;
+        sum91[attr] = (sum91[attr] || 0) + (parseInt(r.Volume) || 0);
+    });
+    Object.keys(sum91).forEach(function(attr) {
+        ensureNC(attr);
+        ncDim[attr].dates = Math.max(0, (attrMeta[attr].volume || 0) - sum91[attr]);
+    });
+
+    // 9.2 — Si Unicité = "Non" → NC = Volume_9.2
+    qval('question2g9').forEach(function(r) {
+        var attr = r.Attribut; if (!attr || !attrMeta[attr]) return;
+        if (r.Unicite === 'Non') { ensureNC(attr); ncDim[attr].identifiantInterne += parseInt(r.Volume) || 0; }
+    });
+
+    // 9.3 — 1 ligne = curé ; 2+ lignes même attribut → somme des volumes = NC
+    var rows93 = {};
+    qval('question3g9').forEach(function(r) {
+        var attr = r.Attribut; if (!attr || !attrMeta[attr]) return;
+        if (!rows93[attr]) rows93[attr] = [];
+        rows93[attr].push(parseInt(r.Volume) || 0);
+    });
+    Object.keys(rows93).forEach(function(attr) {
+        if (rows93[attr].length > 1) {
+            ensureNC(attr);
+            ncDim[attr].identifiantExterne = rows93[attr].reduce(function(s, v) { return s + v; }, 0);
+        }
+    });
+
+    // 9.4 — Idem 9.3
+    var rows94 = {};
+    qval('question4g9').forEach(function(r) {
+        var attr = r.Attribut; if (!attr || !attrMeta[attr]) return;
+        if (!rows94[attr]) rows94[attr] = [];
+        rows94[attr].push(parseInt(r.Volume) || 0);
+    });
+    Object.keys(rows94).forEach(function(attr) {
+        if (rows94[attr].length > 1) {
+            ensureNC(attr);
+            ncDim[attr].ressource = rows94[attr].reduce(function(s, v) { return s + v; }, 0);
+        }
+    });
+
+    // 9.5 (question6g9) — NC = total - volume
+    var sum95 = {};
+    qval('question6g9').forEach(function(r) {
+        var attr = r.Attribut1; if (!attr || !attrMeta[attr]) return;
+        sum95[attr] = (sum95[attr] || 0) + (parseInt(r.Volume) || 0);
+    });
+    Object.keys(sum95).forEach(function(attr) {
+        ensureNC(attr);
+        ncDim[attr].lienEntite = Math.max(0, (attrMeta[attr].volume || 0) - sum95[attr]);
+    });
+
+    // 9.6 (question7g9) — pas de NC
+
+    // 9.7 (question8g9) — NC = total - volume
+    var sum97 = {};
+    qval('question8g9').forEach(function(r) {
+        var attr = r.Attribut; if (!attr || !attrMeta[attr]) return;
+        sum97[attr] = (sum97[attr] || 0) + (parseInt(r.Volume) || 0);
+    });
+    Object.keys(sum97).forEach(function(attr) {
+        ensureNC(attr);
+        ncDim[attr].vocabulaire = Math.max(0, (attrMeta[attr].volume || 0) - sum97[attr]);
+    });
+
+    // pctNC global = max NC par dimension / total (cota inferior, sans double comptage)
+    Object.keys(attrMeta).forEach(function(name) {
+        var a = attrMeta[name];
+        if (a.volume <= 0 || !ncDim[name]) return;
+        var dims = ncDim[name];
+        var maxNC = Math.max(
+            dims.incertitude, dims.ambiguiteCardinalite, dims.ambiguiteValeurs,
+            dims.ambiguiteGroupe, dims.dates, dims.identifiantInterne,
+            dims.identifiantExterne, dims.ressource, dims.lienEntite, dims.vocabulaire
+        );
+        a.pctNC = Math.round(Math.min(maxNC, a.volume) / a.volume * 100);
+        a.ncDimensions = dims;
+    });
+
+    var entityLinks = [];
+    qval('question6g9').forEach(function(r) {
+        if (r.Entite && r.Entites && r.Entite !== r.Entites)
+            entityLinks.push({ source: r.Entite, target: r.Entites, label: r.Attribut1 || '' });
+    });
+
+    var entityNames = Object.keys(entityMeta);
+    var allAttrs = Object.keys(attrMeta).map(function(n) { return Object.assign({ id: n }, attrMeta[n]); });
+
+    if (entityNames.length === 0) {
+        container.innerHTML = '<p style="text-align:center;color:#888;padding:40px;">Aucune entité trouvée. Veuillez compléter la question 4.1.</p>';
+        return;
+    }
+
+
+    // ── Colors ────────────────────────────────────────────────────────────────
+    var PUB_COLORS = {
+        'Oui': '#27ae60',
+        'Oui ultérieurement (raison légale)': '#e67e22',
+        'Oui ultérieurement (raison curatorielle)': '#f1c40f',
+        'Non': '#e74c3c'
+    };
+    function pubColor(p) { return PUB_COLORS[p] || '#95a5a6'; }
+    function ncColor(pct) {
+        if (pct === null) return '#aaa';
+        if (pct <= 10) return '#27ae60';
+        if (pct <= 40) return '#f39c12';
+        return '#e74c3c';
+    }
+
+    // ── Node size scale — proportionnel au volume (aire ∝ volume → r ∝ √volume) ─
+    var allEntityVols = entityNames.map(function(n) { return entityMeta[n].volume || 0; });
+    var allAttrVols   = allAttrs.map(function(a) { return a.volume || 0; });
+    var maxEVol = Math.max.apply(null, allEntityVols.concat([1]));
+    var maxAVol = Math.max.apply(null, allAttrVols.concat([1]));
+
+    function entityRadius(v) {
+        // r_min=20 (si volume=0), r_max=65 (si volume=max) ; aire ∝ volume
+        return Math.round(20 + 45 * Math.sqrt(Math.max(v, 0) / maxEVol));
+    }
+    function attrRadius(v) {
+        // r_min=8, r_max=30 ; aire ∝ volume
+        return Math.round(8 + 22 * Math.sqrt(Math.max(v, 0) / maxAVol));
+    }
+
+    // Pre-compute radii
+    entityNames.forEach(function(n) { entityMeta[n].r = entityRadius(entityMeta[n].volume); });
+    allAttrs.forEach(function(a) { a.r = attrRadius(a.volume); });
+
+    var maxER = Math.max.apply(null, entityNames.map(function(n) { return entityMeta[n].r; }));
+    var maxAR = Math.max.apply(null, allAttrs.map(function(a) { return a.r; }).concat([11]));
+
+    // ── Layout ────────────────────────────────────────────────────────────────
+    var W   = Math.max(container.offsetWidth || 900, 700);
+    var EY  = maxER + 20;
+    var GAP = Math.max(maxER * 2 + 100, (W - 80) / entityNames.length);
+
+    var entityPos = {};
+    entityNames.forEach(function(n, i) {
+        entityPos[n] = { x: 40 + GAP * i + GAP / 2, y: EY };
+    });
+
+    var attrsByEntity = {};
+    entityNames.forEach(function(n) { attrsByEntity[n] = []; });
+    allAttrs.forEach(function(a) {
+        if (a.entity && attrsByEntity[a.entity]) attrsByEntity[a.entity].push(a);
+    });
+
+    var CW   = maxAR * 2 + 18;   // cell width per attr (accounts for label + % below)
+    var CH   = maxAR * 2 + 38;   // cell height (circle + name + pctNC label)
+    var COLS = 5;
+    var AY0  = EY + maxER + 70;
+    var maxRows = 0;
+
+    entityNames.forEach(function(n) {
+        var attrs = attrsByEntity[n];
+        var rows  = Math.ceil(attrs.length / COLS);
+        if (rows > maxRows) maxRows = rows;
+        var gridW = Math.min(attrs.length, COLS) * CW;
+        var sx    = entityPos[n].x - gridW / 2 + CW / 2;
+        attrs.forEach(function(a, i) {
+            a.x = sx + (i % COLS) * CW;
+            a.y = AY0 + Math.floor(i / COLS) * CH + a.r;
+        });
+    });
+
+    var LEGEND_H = 200;
+    var H = AY0 + maxRows * CH + LEGEND_H + 20;
+
+    // ── SVG ───────────────────────────────────────────────────────────────────
+    d3.select('#survey-viz').selectAll('*').remove();
+    d3.select('#viz-tooltip').remove();
+
+    var svg = d3.select('#survey-viz').append('svg')
+        .attr('width', W).attr('height', H)
+        .style('font-family', 'Arial, sans-serif');
+
+    // Arrowhead (refX scales with radius at render time, so use a fixed offset)
+    svg.append('defs').append('marker')
+        .attr('id', 'viz-arrow').attr('viewBox', '0 -5 10 10')
+        .attr('refX', maxER + 8).attr('refY', 0)
+        .attr('markerWidth', 6).attr('markerHeight', 6).attr('orient', 'auto')
+        .append('path').attr('d', 'M0,-5L10,0L0,5').attr('fill', '#3498db');
+
+    // Entity→Attribute lines
+    entityNames.forEach(function(n) {
+        var ep = entityPos[n], er = entityMeta[n].r;
+        attrsByEntity[n].forEach(function(a) {
+            svg.append('line')
+                .attr('x1', ep.x).attr('y1', ep.y + er)
+                .attr('x2', a.x).attr('y2', a.y - a.r - 2)
+                .attr('stroke', '#dde').attr('stroke-width', 1);
+        });
+    });
+
+    // Entity↔Entity relationship curves
+    entityLinks.forEach(function(lk) {
+        var s = entityPos[lk.source], t = entityPos[lk.target];
+        if (!s || !t) return;
+        var mx = (s.x + t.x) / 2, my = Math.min(s.y, t.y) - 65;
+        svg.append('path')
+            .attr('d', 'M' + s.x + ',' + s.y + ' Q' + mx + ',' + my + ' ' + t.x + ',' + t.y)
+            .attr('stroke', '#3498db').attr('stroke-width', 2).attr('fill', 'none')
+            .attr('stroke-dasharray', '6,3').attr('marker-end', 'url(#viz-arrow)');
+        if (lk.label) svg.append('text')
+            .attr('x', mx).attr('y', my - 6)
+            .attr('text-anchor', 'middle').attr('font-size', 9).attr('fill', '#3498db')
+            .text(lk.label.length > 15 ? lk.label.slice(0, 14) + '…' : lk.label);
+    });
+
+    // ── Entity nodes ──────────────────────────────────────────────────────────
+    var eG = svg.selectAll('.e-node').data(entityNames).enter()
+        .append('g').attr('class', 'e-node')
+        .attr('transform', function(n) { var p = entityPos[n]; return 'translate(' + p.x + ',' + p.y + ')'; });
+
+    eG.append('circle')
+        .attr('r', function(n) { return entityMeta[n].r; })
+        .attr('fill', '#2c3e50').attr('stroke', '#1a252f').attr('stroke-width', 2);
+
+    // Entity name (inside circle, 2 lines if needed)
+    eG.each(function(n) {
+        var er = entityMeta[n].r;
+        var g  = d3.select(this);
+        var words = n.split(/[\s\-_]+/);
+        var mid = Math.ceil(words.length / 2);
+        var line1 = words.slice(0, mid).join(' ');
+        var line2 = words.slice(mid).join(' ');
+        var fs = er >= 50 ? 12 : er >= 40 ? 11 : 10;
+        var maxLen = Math.floor(er * 1.6 / (fs * 0.6));
+        function trunc(s) { return s.length > maxLen ? s.slice(0, maxLen - 1) + '…' : s; }
+        if (line2) {
+            g.append('text').attr('text-anchor','middle').attr('dy', -5)
+                .attr('fill','white').attr('font-size', fs).attr('font-weight','bold').text(trunc(line1));
+            g.append('text').attr('text-anchor','middle').attr('dy', fs + 1)
+                .attr('fill','white').attr('font-size', fs).attr('font-weight','bold').text(trunc(line2));
+        } else {
+            g.append('text').attr('text-anchor','middle').attr('dy', 4)
+                .attr('fill','white').attr('font-size', fs).attr('font-weight','bold').text(trunc(n));
+        }
+    });
+
+    // Below entity: volume
+    eG.append('text').attr('text-anchor', 'middle')
+        .attr('dy', function(n) { return entityMeta[n].r + 15; })
+        .attr('fill', '#444').attr('font-size', 10)
+        .text(function(n) {
+            var v = entityMeta[n].volume;
+            return v ? v.toLocaleString('fr-CH') + ' enreg.' : '';
+        });
+
+    // Below entity: doublons
+    eG.append('text').attr('text-anchor', 'middle')
+        .attr('dy', function(n) { return entityMeta[n].r + 28; })
+        .attr('font-size', 10).attr('font-weight', 'bold')
+        .attr('fill', '#e74c3c')
+        .text(function(n) {
+            var d = entityMeta[n].doublons;
+            return d > 0 ? d.toLocaleString('fr-CH') + ' doublons' : '';
+        });
+
+    // ── Tooltip ───────────────────────────────────────────────────────────────
+    var tip = d3.select('body').append('div').attr('id', 'viz-tooltip')
+        .style('position', 'absolute').style('display', 'none')
+        .style('background', 'rgba(20,20,20,.88)').style('color', '#fff')
+        .style('padding', '8px 12px').style('border-radius', '5px')
+        .style('font-size', '12px').style('line-height', '1.6')
+        .style('pointer-events', 'none').style('max-width', '280px').style('z-index', '9999');
+
+    // ── Attribute nodes ───────────────────────────────────────────────────────
+    var aG = svg.selectAll('.a-node').data(allAttrs).enter()
+        .append('g').attr('class', 'a-node')
+        .attr('transform', function(d) { return 'translate(' + (d.x || 0) + ',' + (d.y || 0) + ')'; })
+        .style('cursor', 'pointer')
+        .on('mouseover', function(event, d) {
+            var ncStr = d.pctNC !== null ? d.pctNC + '% NC' : 'non déterminé';
+            var dimLabels = {
+                incertitude: 'Incertitudes (7.1)', ambiguiteCardinalite: 'Ambig. cardinalité (8.1)',
+                ambiguiteValeurs: 'Ambig. valeurs (8.2)', ambiguiteGroupe: 'Ambig. groupe (8.3)',
+                dates: 'Dates (9.1)', identifiantInterne: 'Identifiant interne (9.2)',
+                identifiantExterne: 'Identifiant externe (9.3)', ressource: 'Ressource num. (9.4)',
+                lienEntite: 'Lien entité (9.5)', vocabulaire: 'Vocabulaire (9.7)'
+            };
+            var dimHtml = '';
+            if (d.ncDimensions && d.volume > 0) {
+                Object.keys(dimLabels).forEach(function(k) {
+                    var v = d.ncDimensions[k];
+                    if (v > 0) {
+                        var pct = Math.round(Math.min(v, d.volume) / d.volume * 100);
+                        dimHtml += '<br>&nbsp;&nbsp;<small>' + dimLabels[k] + ' : ' + pct + '%</small>';
+                    }
+                });
+                if (dimHtml) dimHtml = '<br><small style="color:#aaa;">Détail par dimension :</small>' + dimHtml;
+            }
+            tip.style('display', 'block').html(
+                '<strong>' + d.id + '</strong><br>' +
+                (d.entity ? 'Entité : ' + d.entity + '<br>' : '') +
+                (d.type   ? 'Type : '   + d.type   + '<br>' : '') +
+                (d.volume ? 'Volume : ' + d.volume.toLocaleString('fr-CH') + '<br>' : '') +
+                '% NC (cota inferior) : ' + ncStr + dimHtml + '<br>' +
+                'Publiabilité : ' + (d.publiable || '<em>non renseignée</em>') +
+                (d.priorite  ? '<br>Priorité : ' + d.priorite : '') +
+                (d.uncertain ? '<br><span style="color:#ffd;">⚠ Incertitudes déclarées</span>' : '') +
+                (d.ambiguous ? '<br><span style="color:#fca;">⚠ Ambiguïtés déclarées</span>' : '')
+            );
+        })
+        .on('mousemove', function(event) {
+            tip.style('left', (event.pageX + 14) + 'px').style('top', (event.pageY - 10) + 'px');
+        })
+        .on('mouseout', function() { tip.style('display', 'none'); });
+
+    aG.append('circle')
+        .attr('r', function(d) { return d.r; })
+        .attr('fill', function(d) { return pubColor(d.publiable); })
+        .attr('stroke', function(d) { return d.uncertain ? '#c0392b' : (d.ambiguous ? '#e67e22' : '#aaa'); })
+        .attr('stroke-width', function(d) { return (d.uncertain || d.ambiguous) ? 2.5 : 1; })
+        .attr('stroke-dasharray', function(d) { return (!d.uncertain && d.ambiguous) ? '3,2' : null; });
+
+    // Alerte incertitude/ambiguïté au-dessus
+    aG.filter(function(d) { return d.uncertain || d.ambiguous; })
+        .append('text').attr('text-anchor', 'middle')
+        .attr('dy', function(d) { return -d.r - 3; })
+        .attr('font-size', 9).attr('fill', '#c0392b').text('▲');
+
+    // Nom de l'attribut (sous le cercle)
+    aG.append('text').attr('text-anchor', 'middle')
+        .attr('dy', function(d) { return d.r + 11; })
+        .attr('font-size', 8).attr('fill', '#333')
+        .text(function(d) { return d.id.length > 9 ? d.id.slice(0, 8) + '…' : d.id; });
+
+    // % NC (sous le nom, toujours visible)
+    aG.append('text').attr('text-anchor', 'middle')
+        .attr('dy', function(d) { return d.r + 22; })
+        .attr('font-size', 8).attr('font-weight', 'bold')
+        .attr('fill', function(d) { return ncColor(d.pctNC); })
+        .text(function(d) { return d.pctNC !== null ? d.pctNC + '% NC' : 'n.d.'; });
+
+    // ── Legend ────────────────────────────────────────────────────────────────
+    var LEG = [
+        { color: '#27ae60', label: 'Publiable – Oui' },
+        { color: '#e67e22', label: 'Publiable – Oui ultér. (légal)' },
+        { color: '#f1c40f', label: 'Publiable – Oui ultér. (curation)' },
+        { color: '#e74c3c', label: 'Non publiable' },
+        { color: '#95a5a6', label: 'Publiabilité non renseignée' }
+    ];
+    var lx = 12, ly = H - LEGEND_H;
+    var lg = svg.append('g').attr('transform', 'translate(' + lx + ',' + ly + ')');
+    lg.append('rect').attr('x', -5).attr('y', -8)
+        .attr('width', 310).attr('height', LEGEND_H - 10).attr('rx', 5)
+        .attr('fill', 'rgba(255,255,255,0.93)').attr('stroke', '#ddd');
+    LEG.forEach(function(item, i) {
+        var g = lg.append('g').attr('transform', 'translate(4,' + (i * 20 + 4) + ')');
+        g.append('circle').attr('r', 6).attr('cx', 6).attr('cy', 3).attr('fill', item.color);
+        g.append('text').attr('x', 17).attr('y', 7).attr('font-size', 10).attr('fill', '#333').text(item.label);
+    });
+    var noteY = LEG.length * 20 + 10;
+    [
+        '% NC = cota inferior de données non curatées (max par dimension, sections 7-9)',
+        'n.d. = non déterminé (données de normalisation absentes)',
+        '▲ = incertitudes ou ambiguïtés déclarées',
+        'Taille des nœuds proportionnelle au volume de données',
+        'Chiffre rouge sous entité = nombre de doublons déclarés (6.1)'
+    ].forEach(function(txt, i) {
+        lg.append('text').attr('x', 4).attr('y', noteY + i * 14)
+            .attr('font-size', 9).attr('fill', '#666').text(txt);
+    });
+}
+
+// Actualización al navegar a cada página — garantiza que los dropdowns
+// estén siempre al día con los datos de páginas anteriores
+survey.onCurrentPageChanged.add(function(sender, options) {
+    var page = options.newCurrentPage.name;
+    // Masquer la nav standard sur la page d'accueil (bouton Commençons ! intégré au contenu)
+    var container = document.getElementById('surveyContainer');
+    if (container) {
+        if (page === 'page_cover') {
+            container.classList.add('hide-intro-nav');
+        } else {
+            container.classList.remove('hide-intro-nav');
+        }
+    }
+    if (page === "page_questionsg6") {
+        // 6.1 Doublons — entidades de 4.1
+        updateEntiteDropdowns(sender);
+    }
+    if (page === "page_questionsg5") {
+        // 5.1 Attributs — entidades de 4.1
+        updateQuestion1g5(sender);
+    }
+    if (page === "page_questionsg7") {
+        // 7.1 Incertitudes — entidades de 4.1 + atributos de 5.1
+        updateEntiteDropdowns(sender);
+        updateAllAttributeDropdowns(sender);
+    }
+    if (page === "page_questionsg8"  || page === "page_questionsg9"  ||
+        page === "page_questionsg10" || page === "page_questionsg11" ||
+        page === "page_questionsg_sensible" || page === "page_questionsg12") {
+        // Secciones 8–12 — atributos de 5.1 + variables de tipo
+        updateAllAttributeDropdowns(sender);
+        updateTypeVariables(sender);
+    }
+    if (page === "page_fin") {
+        // Dar tiempo al DOM para renderizar el contenedor HTML antes de dibujar
+        setTimeout(function() { renderViz(sender); }, 150);
+    }
+});
+
+$("#surveyContainer").Survey({ model: survey });
+
+// Masquer la nav standard dès le rendu initial si on démarre sur la page d'accueil
+if (survey.currentPage && survey.currentPage.name === 'page_cover') {
+    var initialContainer = document.getElementById('surveyContainer');
+    if (initialContainer) { initialContainer.classList.add('hide-intro-nav'); }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ⓘ Column info tooltips — textes par question/colonne
+// ─────────────────────────────────────────────────────────────────────────────
+var colInfoTexts = {
+    "question1g4": {
+        "entite":  "Indiquez le nom de l'entité ou le titre de la table qui compose le jeu de données.",
+        "volume":  "Indiquez le nombre d'enregistrements (ou d'entrées) que contient cette entité.",
+        "modele":  "Si vous avez indiqué dans la page précédente l'utilisation de plusieurs modèles/ontologies/normes compatibles, identifiez ici ceux que vous considérez compatibles avec cette entité.",
+        "systeme": "Si vous avez indiqué dans la page précédente l'utilisation de plusieurs systèmes de gestion, identifiez ici le système utilisé pour cette entité."
+    },
+    "question1g6": {
+        "entite":       "Parmi les entités indiquées dans la question 4.1, sélectionnez uniquement celles qui peuvent contenir des doublons.",
+        "volume":       "Indiquez le nombre d'enregistrements dupliqués pour cette entité. Si vous ne connaissez pas le nombre exact, une estimation approximative est acceptée. Veuillez compter le nombre total d'enregistrements affectés, et non le nombre de paires, triplés ou autres regroupements.",
+        "commentaires": "Fournissez toute information supplémentaire utile concernant les doublons identifiés pour cette entité, en particulier si cela permet d'expliquer des motifs ou des tendances de duplication."
+    },
+    "question1g5": {
+        "Entites":    "Indiquez à quelle Entité/Table appartient l'attribut.",
+        "Attributs":  "Écrivez le nom utilisé pour identifier l'attribut. Si votre attribut a un nom d'affichage (étiquette / label) et un nom technique (nom interne), indiquez ici le nom d'affichage et précisez le nom technique dans la colonne correspondante.",
+        "NomInterne": "Écrivez ici le nom interne du champ (nom technique / interne utilisé dans la base de données).",
+        "Obligatoire":"Indique si l'attribut est requis obligatoirement ou non pour créer l'enregistrement.",
+        "TypeDonnee": "Classez l'attribut selon le type de données qu'il enregistre.<br><br>Si un même attribut contient des valeurs de types différents (par exemple, une partie des données est normalisée selon un vocabulaire contrôlé et une autre en texte libre), indiquez toujours le type correspondant à la valeur qui suit la règle curatoriale de votre institution ou, en l'absence d'une telle règle, le type idéal selon vos besoins. Le volume des données correctement normalisées sera demandé ultérieurement.<br><br><b>Les possibilités sont :</b><br><br><b>Booléen</b> : valeur de type vrai/faux (oui/non, présent/absent, En ligne/Hors ligne).<br><br><b>Date</b> : choisissez cette option uniquement pour les attributs qui expriment une information temporelle sous une forme fixe ou formule. Attention : une date peut également être exprimée comme texte libre, vocabulaire contrôlé, identifiant, etc. Dans ces cas, indiquez le type correspondant.<br><br><b>Identifiant interne</b> : code unique ou référence stable, utilisé pour identifier une ressource ou une entité à l'intérieur d'un jeu de données. Les caractéristiques de l'identifiant, comme sa composition ou son unicité, seront examinées dans des questions ultérieures.<br><br><b>Identifiant ou lien externe</b> : identifiant ou lien pointant vers des entités ou des attributs situés dans une autre base de données ou un autre jeu de données, généralement gérés par une institution tierce. Contrairement aux liens vers des ressources numériques (images, documents, vidéos), ces liens établissent une relation avec des éléments structurés d'une autre base de données, et non avec des fichiers ou supports multimédias.<br><br><b>Lien vers une ressource numérique (interne)</b> : lien pointant vers une ressource en ligne (image, document, vidéo, audio, fiche descriptive, etc.) publiée ou gérée directement par l'institution. Il s'agit d'un lien vers un support numérique associé et non d'un lien vers une entité ou un attribut du jeu de données. La ressource peut être rendue publique ou rester accessible uniquement en interne.<br><br><b>Lien vers une ressource numérique (externe)</b> : lien pointant vers une ressource en ligne (image, document, vidéo, audio, fiche descriptive, etc.) publiée ou gérée par une autre institution ou organisation. Là encore, il s'agit d'un lien vers une ressource numérique associée, à distinguer des liens qui connectent une entité à d'autres entités ou attributs dans une base de données.<br><br><b>Lien vers une autre entité/table</b> : cet attribut indique une relation directe entre des entités du même jeu de données. La valeur de cet attribut est soit un identifiant unique, soit un lien vers une autre entité du même jeu de données. Exemple : « ID de l'auteur » dans la table Œuvres, qui renvoie à la table Auteurs.<br><br><b>Texte libre</b> : champ ouvert dans lequel on peut écrire n'importe quelle valeur, sans restriction ni validation par rapport à une liste.<br><br><b>Vocabulaire contrôlé</b> : la valeur de l'attribut est sélectionnée à partir d'une liste prédéfinie. Il peut s'agir d'un vocabulaire interne à l'institution, publié par une autre institution, ou d'un thésaurus/autorité publié et disponible en Linked Open Data. Cette catégorie est différente de « Identifiant externe », qui relie la valeur de l'attribut à une entité spécifique dans une autre base de données ou projet.",
+        "Grupo":      "Un attribut peut appartenir à un groupe d'attributs, c'est-à-dire à un ensemble logique qui réunit plusieurs informations relatives à des entités liées entre elles. Par exemple, le groupe « Autres noms » peut regrouper les attributs Type, Nom et Remarque. Si l'attribut que vous analysez fait partie d'un tel groupe, indiquez-le ici.<br><br>Privilégiez le nom officiel du groupe ; en l'absence d'un nom officiel, proposez une dénomination descriptive et unique, ou attribuez-lui un numéro.",
+        "Langue":     "Indiquez la ou les langues dans lesquelles les valeurs de cet attribut se trouvent.",
+        "Volume":     "Indiquez le nombre total d'enregistrements pour cet attribut. En cas de doublons, des précisions seront demandées ultérieurement.",
+        "Description":"Expliquez brièvement ce que contient l'attribut et comment il est utilisé. Exemple : « Titre » → titre assigné par le créateur de l'oeuvre."
+    },
+    "question1g7": {
+        "Entite":               "Sélectionnez l'entité à laquelle appartient l'attribut.",
+        "Attribut":             "Parmi les attributs indiqués dans la question 5.1, sélectionnez uniquement ceux qui peuvent contenir des valeurs incertaines.",
+        "IncertitudeStructure": "Identifiez comment l'incertitude est exprimée dans la structure des données. Intégrée : directement avec la valeur (ex. « Courbet ? », « ca. 1780 »). Attribut d'incertitude : attribut dédié ne communiquant que l'incertitude.",
+        "IncertitudeExpression":"Pour les attributs avec incertitude intégrée, indiquez les marqueurs utilisés pour exprimer l'incertitude. Sélectionnez toutes les alternatives qui correspondent.",
+        "Volume":               "Indiquez le nombre d'enregistrements qui comportent des valeurs incertaines.",
+        "Exemple":              "Illustrez les expressions des valeurs incertaines avec un exemple concret."
+    },
+    "question1g8": {
+        "Entite":      "Sélectionnez l'entité à laquelle appartient l'attribut.",
+        "Attribut":    "Sélectionnez uniquement les attributs pouvant contenir plusieurs valeurs dans un même enregistrement (cardinalité supérieure à 1).<br><br><em>Exemple :</em><br>« Mots-clés » → plusieurs mots-clés par enregistrement, séparés par des virgules ou un autre séparateur.<br>Techniques utilisées : « gravure; aquarelle; pastel »<br>Dimensions : « hauteur : 50 cm, largeur : 30 cm, profondeur : 20 cm ».",
+        "RelationType":"Caractérisez la relation entre les différents types de valeurs de cet attribut en sélectionnant un ou plusieurs descripteurs.<br><br><strong>Valides simultanément :</strong> les valeurs peuvent coexister dans le même champ. <em>Exemple : le champ « Mots-clés » = « peinture, huile, 19ème siècle ».</em><br><br><strong>Exclusives (une ou l'autre) :</strong> seulement une des alternatives peut être considérée correcte. <em>Exemple : « date de naissance » = « 1984, 1985 ».</em><br><br><strong>Équivalentes :</strong> deux valeurs expriment exactement le même sens et pourraient être considérées interchangeables. <em>Exemple : « huile sur toile » et « peinture à l'huile sur toile ».</em><br><br><strong>Variante ou reformulation :</strong> une valeur est une forme différente, une reformulation ou une orthographe alternative d'une autre, mais conserve globalement le même sens. <em>Exemple : « Guerre de Sécession » et « Guerre civile américaine ».</em><br><br><strong>Complémentaires :</strong> les valeurs apportent des informations différentes mais qui se complètent pour comprendre pleinement l'attribut. <em>Exemple : dans un champ « Dimensions », « hauteur : 50 cm » et « largeur : 30 cm » sont complémentaires.</em><br><br><strong>Quantification :</strong> une valeur précise la quantité d'occurrences de l'autre. <em>Exemple : « Fragments, 3 ».</em><br><br><strong>Partie-tout :</strong> une valeur représente une partie du contenu ou du concept de l'autre valeur, ou inversement. <em>Exemple : « sous-collection de sculptures » et « collection de sculptures » : la première est une partie de la seconde.</em><br><br><strong>Niveau hiérarchique :</strong> un attribut est imbriqué dans un autre à un niveau différent. <em>Exemple : « Sous-collection » est imbriqué dans « Collection ».</em><br><br><strong>Séquentielle :</strong> attributs décrivent des étapes successives d'un processus. <em>Exemple : « Étape de traitement documentaire » : catalogage → indexation → validation.</em><br><br><strong>Source / provenance :</strong> un attribut documente l'origine de l'information contenue dans un autre. <em>Exemple : « Année » = « 1765, selon Berthet ».</em><br><br><strong>Autre :</strong> toute autre situation non couverte par les options ci-dessus.",
+        "Volume":      "Indiquez le nombre de cas correspondant à ce type de relation."
+    },
+    "question2g8": {
+        "Entite":   "Sélectionnez l'entité à laquelle appartient l'attribut.",
+        "Attribut": "Parmi les attributs indiqués dans la question 5.1, sélectionnez uniquement ceux pour lesquels les valeurs renseignées dans un même attribut désignent des aspects différents ou incohérents.<br><br>Exemple :<br><br>Date de création = \"1850\" dans un enregistrement et Date de création = \"Genève\" dans un autre (mélange entre donnée chronologique et Lieu pour le même attribut).",
+        "Relation": "Caractérisez le type d'hétérogénéité sémantique observé pour cet attribut.<br><br><strong>Incohérent / hors type :</strong> le type de valeur ne correspond pas au champ. <em>Exemple : une date dans un champ « Ville ».</em><br><br><strong>Spécification / précision :</strong> la valeur apporte un détail ou une sous-catégorie du champ principal. <em>Exemple : « Arrondissement 5 » dans un champ « Ville ».</em><br><br><strong>Niveau hiérarchique :</strong> la valeur correspond à un niveau supérieur ou inférieur par rapport à ce que le champ devrait contenir. <em>Exemple : « Île-de-France » dans un champ « Ville ».</em><br><br><strong>Autre :</strong> toute autre relation non listée. <em>Exemple : ____________________.</em>",
+        "Volume":   "Indiquez le nombre de cas correspondant à ce type de relation."
+    },
+    "question3g8": {
+        "Entite":              "Sélectionnez l'entité à laquelle appartient le groupe.",
+        "Groupe":              "Sélectionnez l'un des groupes d'attributs mentionnés à la question 5.1.",
+        "Attribut1":    "Sélectionnez l'un des attributs du groupe.",
+        "Attribut2":    "Sélectionnez un autre attribut du même groupe.",
+        "Volume":       "Indiquez le nombre de cas correspondant à ce type de relation.",
+        "TypeRelation": "Caractérisez la relation sémantique attendue entre les attributs du groupe en sélectionnant un ou plusieurs descripteurs.<br><br><strong>Valides simultanément :</strong> les valeurs des attributs peuvent coexister. <em>Exemple : Prénom = « Claire » et Nom de famille = « Lefebvre ».</em><br><br><strong>Compatibilité :</strong> un attribut doit être cohérent avec l'autre. <em>Exemple : « Date de début d'exposition » &lt; « Date de fin d'exposition ».</em><br><br><strong>Variante / reformulation :</strong> un attribut est une reformulation ou une version alternative de l'autre. <em>Exemple : « Lieu (Fr) » = « Lieu (De) ».</em><br><br><strong>Complémentarité :</strong> un attribut apporte des informations différentes mais complémentaires. <em>Exemple : « Sujet principal » + « Sujet secondaire ».</em><br><br><strong>Redondance contrôlée :</strong> un attribut double l'information de l'autre pour vérification ou normalisation. <em>Exemple : « Date de création » enregistrée dans deux formats différents pour vérification.</em><br><br><strong>Partie-tout :</strong> un attribut représente une partie de l'autre. <em>Exemple : « Chapitre » fait partie de « Livre ».</em><br><br><strong>Niveau hiérarchique :</strong> un attribut est imbriqué dans un autre à un niveau différent. <em>Exemple : « Sous-collection » est imbriqué dans « Collection ».</em><br><br><strong>Séquentielle :</strong> attributs décrivent des étapes successives d'un processus. <em>Exemple : « Étape de traitement documentaire » : catalogage → indexation → validation.</em><br><br><strong>Contraintes croisées :</strong> la valeur d'un attribut limite ou oriente les valeurs possibles de l'autre. <em>Exemple : « Type de support » = parchemin → « Format » = feuillet simple ou codex.</em><br><br><strong>Valeurs dérivées :</strong> la valeur d'un attribut est calculée à partir de celle de l'autre. <em>Exemple : « Durée de validité » calculée à partir de « Date de début » et « Date de fin ».</em><br><br><strong>Certitude / incertitude :</strong> un attribut indique si la valeur de l'autre est certaine, incertaine ou hypothétique. <em>Exemple : « Certitude de la date » → qualifie l'attribut « Date de création » (certaine / incertaine / hypothétique).</em><br><br><strong>Source / provenance :</strong> un attribut documente l'origine de l'information contenue dans un autre. <em>Exemple : « Source du titre » → qualifie l'attribut « Titre de l'œuvre » (catalogue raisonné, inscription, inventaire).</em><br><br><strong>Autre :</strong> toute autre relation non couverte par les options ci-dessus."
+    },
+    "question1g9": {
+        "Entite":     "Sélectionnez l'entité à laquelle appartient l'attribut.",
+        "Attribut":   "Sélectionnez un attribut de type « Date » indiqué à la question 5.1.",
+        "FormatDate": "Sélectionnez le format de date utilisé. Si aucun format ne correspond, décrivez-le dans « Autre ». Si plusieurs formats coexistent pour un même attribut, ajoutez une ligne par format.",
+        "Volume":     "Indiquez le nombre d'entrées normalisées selon ce format."
+    },
+    "question2g9": {
+        "Entite":            "Sélectionnez l'entité à laquelle appartient l'attribut.",
+        "Attribut":          "Sélectionnez un attribut de type « Identifiant interne » indiqué à la question 5.1.",
+        "StructureComposition": "Sélectionnez tous les composants qui entrent dans la construction de cet identifiant. Plusieurs composants peuvent être combinés — par exemple : Préfixe alphabétique + Année + Numéro séquentiel.<br><br><strong>Préfixe alphabétique :</strong> lettres fixes placées en tête de l'identifiant pour indiquer le type ou la collection. <em>Exemple : MS-, COL-, ARC-</em><br><br><strong>Année d'entrée / d'acquisition :</strong> millésime intégré à l'identifiant. <em>Exemple : 2023-...</em><br><br><strong>Numéro séquentiel :</strong> compteur incrémental qui s'ajoute à d'autres composants. <em>Exemple : ...001, ...0042</em><br><br><strong>Code d'entité / de fonds :</strong> code identifiant la collection ou le fonds d'appartenance. <em>Exemple : BIBL-, PHOTO-, FDS-</em><br><br><strong>Code de localisation :</strong> composant indiquant un emplacement physique. <em>Exemple : SAL2-R3-</em><br><br><strong>Niveau hiérarchique :</strong> structure reflétant la position dans une arborescence documentaire. <em>Exemple : Fonds / Série / Dossier / Pièce</em><br><br><strong>Chiffre de contrôle :</strong> digit de vérification calculé automatiquement pour valider l'identifiant.<br><br><strong>Identifiant libre / non structuré :</strong> pas de règle formelle de construction — l'identifiant a été attribué de manière non systématique.",
+        "Unicite":           "L'identifiant est-il unique dans l'ensemble du jeu de données, ou des répétitions peuvent-elles exister avec d'autres entités ?",
+        "CleComposite":      "Si l'identifiant n'est pas unique, indiquez avec quel(s) autre(s) attribut(s) il se combine pour former une clé composite unique.",
+        "Volume":            "Indiquez le nombre d'entrées normalisées selon ce format."
+    },
+    "question3g9": {
+        "Entite":          "Sélectionnez l'entité à laquelle appartient l'attribut.",
+        "Attribut":        "Sélectionnez un attribut de type « Identifiant ou lien externe » indiqué à la question 5.1.",
+        "TypeIdentifiant": "Indiquez le type de lien ou identifiant. Sélectionnez une seule option. S'il en existe plusieurs pour un même attribut, créez une nouvelle ligne. Si votre type n'est pas disponible, utilisez « Autre ».",
+        "Volume":          "Indiquez le nombre d'entrées normalisées selon le type indiqué."
+    },
+    "question4g9": {
+        "Entite":   "Sélectionnez l'entité à laquelle appartient l'attribut.",
+        "Attribut": "Sélectionnez un attribut de type « Lien vers une ressource numérique » (interne ou externe) indiqué à la question 5.1.",
+        "TypeLien":  "Indiquez comment le lien vers la ressource est stocké dans votre système.<br><br><strong>URI persistante (LOD-ready) :</strong> identifiant uniforme et stable, conçu pour le web sémantique. Directement utilisable en Linked Open Data. <em>Exemple : https://data.musee.ch/resource/image/001</em><br><br><strong>URL persistante / permalien :</strong> lien web stable garanti dans le temps, mais pas nécessairement structuré comme une URI LOD. <em>Exemple : https://collections.musee.ch/permalink/001</em><br><br><strong>URL simple :</strong> lien web standard, potentiellement fragile si le serveur est réorganisé. <em>Exemple : https://collections.musee.ch/image/001.jpg</em><br><br><strong>ARK (Archival Resource Key) :</strong> identifiant persistant largement utilisé dans les institutions GLAM francophones. <em>Exemple : ark:/12148/btv1b10022508f</em><br><br><strong>IIIF :</strong> manifest ou endpoint IIIF pour la diffusion d'images interopérables. <em>Exemple : https://iiif.musee.ch/manifest/001</em><br><br><strong>Chemin de fichier / route serveur :</strong> référence interne non résolvable depuis le web. <em>Exemple : /nas/collections/images/001.tif</em><br><br><strong>Identifiant interne (non résolvable) :</strong> code propre au logiciel de gestion, sans exposition web. <em>Exemple : IMG_4521</em>",
+        "Ressource": "Indiquez le format du fichier ou du support numérique associé. S'il existe plusieurs formats pour un même attribut, créez une nouvelle ligne par format.",
+        "Volume":   "Indiquez le nombre d'entrées normalisées selon ce format."
+    },
+    "question3g10": {
+        "Entite":        "Sélectionnez l'entité à laquelle appartient l'attribut.",
+        "Attribut":      "Sélectionnez un attribut de type « Lien vers une ressource numérique » indiqué à la question 5.1.",
+        "Accessibilite": "Indiquez si la ressource est actuellement accessible depuis l'extérieur de l'institution.<br><br><strong>Accessible via URL web (résolvable publiquement) :</strong> l'URL est permanente et accessible depuis n'importe quel réseau.<br><br><strong>Accessible via API / endpoint :</strong> la ressource est accessible via une interface programmatique (IIIF, OAI-PMH, REST, etc.).<br><br><strong>Accessible en réseau local uniquement :</strong> disponible sur l'intranet de l'institution mais pas sur le web ouvert.<br><br><strong>Non accessible numériquement (BLOB / fichier local) :</strong> stockée comme objet binaire ou fichier local sans exposition réseau.<br><br><strong>Non numérisé :</strong> l'objet physique n'a pas encore été numérisé.",
+        "Commentaires":  "Précisions supplémentaires sur l'accessibilité ou les conditions d'accès."
+    },
+    "question6g9": {
+        "Entite":   "Sélectionnez l'entité source de la relation.",
+        "Attribut1":"Sélectionnez l'attribut source (de type « Lien vers une autre entité/table »), c'est-à-dire l'attribut qui contient la référence vers l'autre entité.",
+        "Entites":  "Sélectionnez l'entité cible vers laquelle pointe le lien.",
+        "Volume":   "Indiquez le nombre de liens établis entre les deux entités."
+    },
+    "question7g9": {
+        "Entite":     "Sélectionnez l'entité à laquelle appartient l'attribut.",
+        "Attribut":   "Sélectionnez un attribut de type « Texte libre » indiqué à la question 5.1.",
+        "NbFacettes": "Une facette est une valeur distincte que peut prendre un attribut. Par exemple, un champ « Technique » avec les valeurs « huile sur toile », « aquarelle » et « gravure » compte 3 facettes, même si ces valeurs apparaissent des centaines de fois au total.<br><br>Indiquez une estimation du nombre de valeurs distinctes possibles pour cet attribut. Une estimation approximative est acceptée.",
+    },
+    "question8g9": {
+        "Entite":          "Sélectionnez l'entité à laquelle appartient l'attribut.",
+        "Attribut":        "Sélectionnez un attribut de type « Vocabulaire contrôlé » indiqué à la question 5.1.",
+        "TypeVocabulaire": "Précisez le type de vocabulaire. Interne : liste plate, hiérarchie simple, ou thésaurus. Externe : standard reconnu (LCSH, AAT, RAMEAU, etc.) ou disponible en Linked Open Data.",
+        "Volume":          "Indiquez le nombre d'entrées normalisées selon ce vocabulaire.",
+        "NbValeurs":       "Pour les vocabulaires internes uniquement : indiquez le nombre total de valeurs possibles du vocabulaire.",
+        "DocumentInterne": "Pour les vocabulaires internes, téléversez le fichier présentant les valeurs acceptées et leur organisation. Formats acceptés : PDF, Word (.doc/.docx), Excel (.xls/.xlsx), CSV."
+    },
+    "question1g10b": {
+        "Entite":      "Sélectionnez l'entité à laquelle appartient l'attribut.",
+        "Attribut":    "Sélectionnez l'attribut dont la périodicité diffère de celle indiquée en 10.1.",
+        "Periodicite": "Mise à jour automatique (sans intervention humaine) / Semi-automatique (validation humaine requise) / Manuelle périodique (calendrier défini) / Ponctuelle/ad hoc (uniquement si changement détecté) / Pas de mise à jour.",
+        "Commentaires":"Précisions supplémentaires sur la périodicité ou les conditions de mise à jour de cet attribut."
+    },
+    "question2g10": {
+        "Entite":      "Sélectionnez l'entité à laquelle appartient l'attribut.",
+        "Attribut":    "Sélectionnez un attribut de type « Identifiant interne » ou « Identifiant ou lien externe » indiqué à la question 5.1.",
+        "Durabilite":  "<strong>Permanent (permalien / URI persistante) :</strong> l'identifiant est garanti de rester valide indéfiniment. <em>Exemple : ARK, DOI, URI LOD.</em><br><br><strong>Stable (ne devrait pas changer) :</strong> l'identifiant est stable en pratique mais sans garantie formelle.<br><br><strong>Susceptible de changer :</strong> peut être modifié lors de migrations, changements de logiciel ou de politique interne.<br><br><strong>Lien mort / invalide actuellement :</strong> l'identifiant ou le lien ne fonctionne plus.",
+        "Commentaires":"Précisions supplémentaires sur la durabilité ou la stabilité."
+    },
+    "question1g11b": {
+        "Entite":       "Sélectionnez l'entité à laquelle appartient l'attribut.",
+        "Attribut":     "Sélectionnez l'attribut soumis à une restriction de propriété intellectuelle spécifique, différente du régime général indiqué en 11.1.",
+        "Restriction":  "Sélectionnez le type de restriction applicable à cet attribut.<br><br><strong>Droits d'auteur de tiers :</strong> le contenu de cet attribut est protégé par des droits appartenant à une personne ou organisation externe.<br><br><strong>Droit sui generis (UE) :</strong> protection d'un investissement substantiel dans la constitution d'une base de données.<br><br><strong>Restrictions contractuelles :</strong> des clauses contractuelles limitent la diffusion.<br><br><strong>Restrictions IA :</strong> clauses interdisant l'utilisation des données pour l'entraînement de modèles IA.<br><br><strong>Usage interne uniquement :</strong> l'institution a décidé de ne pas diffuser cet attribut.",
+        "Commentaires": "Précisions supplémentaires sur la restriction applicable."
+    },
+    "question1g12s": {
+        "Entite":          "Sélectionnez l'entité à laquelle appartient l'attribut.",
+        "Attribut":        "Sélectionnez l'attribut contenant des données à caractère personnel.",
+        "TypeDonneePerso": "Sélectionnez le type de donnée personnelle contenu dans cet attribut.",
+        "Solution":        "Indiquez la solution recommandée pour la publication de cet attribut sur la plateforme LOD.",
+        "Commentaires":    "Précisions sur les données personnelles ou les conditions de traitement."
+    },
+    "question2g12s": {
+        "Entite":        "Sélectionnez l'entité à laquelle appartient l'attribut.",
+        "Attribut":      "Sélectionnez l'attribut lié à un contenu culturellement ou éthiquement sensible.",
+        "TypeSensibilite":"Sélectionnez le type de sensibilité culturelle ou éthique identifié pour cet attribut.",
+        "Solution":      "Indiquez la solution recommandée pour la publication de cet attribut sur la plateforme LOD.",
+        "Commentaires":  "Précisions sur la sensibilité ou les conditions de diffusion recommandées."
+    },
+    "question1g12": {
+        "Entite":      "Sélectionnez l'entité à laquelle appartient l'attribut.",
+        "Attribut":    "Indiquez l'un des attributs mentionnés à la question 5.1.",
+        "Publiable":   "Oui (publication immédiate possible) / Oui ultérieurement (raison légale) / Oui ultérieurement (raison curatorielle) / Non. Cette indication ne reflète que votre opinion initiale et n'engage en aucun cas la publication effective.",
+        "Priorite":    "Prioritaire (doit être publié en priorité) / Secondaire/Moyennement prioritaire (non urgent) / Non prioritaire (si possible, mais non essentiel).",
+        "Commentaires":"Précisions supplémentaires sur la publiabilité ou la priorité."
+    }
+};
+
+// Créer le div du popup ⓘ
+(function() {
+    var popup = document.createElement('div');
+    popup.id = 'col-info-popup';
+    document.body.appendChild(popup);
+    document.addEventListener('click', function(e) {
+        if (!e.target.classList.contains('col-info-btn')) {
+            document.getElementById('col-info-popup').classList.remove('visible');
+        }
+    });
+})();
+
+function showColInfoPopup(e, text) {
+    e.stopPropagation();
+    var popup = document.getElementById('col-info-popup');
+    popup.innerHTML = text;
+    var r = e.target.getBoundingClientRect();
+    var W = 340;
+    var left = Math.min(Math.max(r.left + r.width / 2 - W / 2, 5), window.innerWidth - W - 5);
+    var top = r.bottom + 8;
+    if (top + 160 > window.innerHeight) top = r.top - 168;
+    popup.style.left = left + 'px';
+    popup.style.top  = top  + 'px';
+    popup.classList.add('visible');
+}
+
+// Injecter les boutons ⓘ dans les en-têtes de colonnes de toutes les questions visibles.
+// Se déclenche via onCurrentPageChanged avec un délai pour laisser knockout terminer le rendu.
+function injectColInfoIcons() {
+    Object.keys(colInfoTexts).forEach(function(qName) {
+        var info = colInfoTexts[qName];
+        var q = survey.getQuestionByName(qName);
+        if (!q || !q.columns) return;
+        var qEl = document.querySelector('[data-name="' + qName + '"]');
+        if (!qEl) return;
+        var ths = qEl.querySelectorAll('table thead th');
+        q.columns.forEach(function(col) {
+            var text = info[col.name];
+            if (!text) return;
+            ths.forEach(function(th) {
+                if (th.querySelector('.col-info-btn')) return; // déjà injecté
+                var thText = th.textContent.replace(/\s+/g, ' ').trim();
+                if (thText !== col.title) return;
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'col-info-btn';
+                btn.textContent = 'i';
+                btn.addEventListener('click', function(e) { showColInfoPopup(e, text); });
+                th.appendChild(btn);
+            });
+        });
+    });
+}
+
+survey.onCurrentPageChanged.add(function(sender, options) {
+    setTimeout(injectColInfoIcons, 200);
+});
+
+// ── Sauvegarde localStorage ───────────────────────────────────────────────
+var SAVE_KEY = 'surveyDiagnosticData';
+var PAGE_KEY = 'surveyDiagnosticPage';
+
+var INTRO_PAGES = ['page_cover'];
+
+function updateSaveBtn(pageName) {
+    var wrap = document.getElementById('save-wrap');
+    if (wrap) wrap.style.display = INTRO_PAGES.indexOf(pageName) === -1 ? 'block' : 'none';
+}
+
+// Mostrar banner de recuperación si hay datos guardados
+(function() {
+    var saved = localStorage.getItem(SAVE_KEY);
+    if (saved) {
+        var banner = document.getElementById('resume-banner');
+        if (banner) banner.style.display = 'block';
+
+        document.getElementById('resume-yes').addEventListener('click', function() {
+            try {
+                survey.data = JSON.parse(saved);
+                var page = parseInt(localStorage.getItem(PAGE_KEY));
+                if (!isNaN(page) && page < survey.pageCount) survey.currentPageNo = page;
+            } catch(e) {}
+            banner.style.display = 'none';
+        });
+
+        document.getElementById('resume-no').addEventListener('click', function() {
+            localStorage.removeItem(SAVE_KEY);
+            localStorage.removeItem(PAGE_KEY);
+            banner.style.display = 'none';
+        });
+    }
+})();
+
+survey.onCurrentPageChanged.add(function(sender, options) {
+    updateSaveBtn(options.newCurrentPage.name);
+});
+
+// Toujours remonter en haut de la page à chaque changement de page
+survey.onCurrentPageChanged.add(function() {
+    window.scrollTo(0, 0);
+});
+
+// Init visibility
+updateSaveBtn(survey.currentPage.name);
+
+function showToast() {
+    var t = document.getElementById('save-toast');
+    t.classList.add('show');
+    setTimeout(function() { t.classList.remove('show'); }, 2000);
+}
+
+document.getElementById('save-btn').addEventListener('click', function() {
+    localStorage.setItem(SAVE_KEY, JSON.stringify(survey.data));
+    localStorage.setItem(PAGE_KEY, survey.currentPageNo);
+    showToast();
+});
+</script>
+
+</body>
+</html>

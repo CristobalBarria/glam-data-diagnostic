@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<!--
+  Version générique de la page d'accueil (portada) du questionnaire,
+  sauvegardée avant son adaptation spécifique au cas de la Ville de Genève.
+  Utile pour réutiliser ce questionnaire avec d'autres institutions/villes :
+  copier le contenu de <div class="cover-wrap">...</div> dans le champ "html"
+  de la page "page_cover" de Survey.html, et le bloc CSS ci-dessous dans son <style>.
+-->
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Portada — version générique</title>
+<style>
+    body { margin: 0; padding: 24px; background: #fafbfc; }
+    .cover-wrap {
+        max-width: 760px; margin: 0 auto; padding: 4px 4px 16px;
+        font-family: -apple-system, "Segoe UI", Arial, sans-serif;
+        color: #2c3e50; line-height: 1.65;
+    }
+    .cover-title { font-size: 26px; font-weight: 800; color: #1a2b3c; margin: 0 0 18px; line-height: 1.35; }
+    .cover-lead { font-size: 15px; color: #4a5568; margin: 0 0 30px; }
+    .cover-section { margin-bottom: 30px; }
+    .cover-section h3 {
+        font-size: 17px; color: #1a2b3c; margin: 0 0 10px;
+        display: flex; align-items: center; gap: 8px;
+    }
+    .cover-section > p { font-size: 14.5px; color: #445; margin: 0 0 10px; }
+    .cover-topics { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px; margin-top: 12px; }
+    .cover-topic {
+        background: #f5f8fd; border: 1px solid #e2e9f5; border-radius: 8px;
+        padding: 11px 14px; font-size: 13.5px; display: flex; gap: 9px; align-items: center;
+    }
+    .cover-note {
+        background: #fff8e6; border: 1px solid #ffe6a6; border-radius: 8px;
+        padding: 12px 16px; font-size: 13.5px; color: #7a5c00; margin-bottom: 30px;
+    }
+    .cover-divider { border: none; border-top: 1px solid #e5e9f0; margin: 0 0 30px; }
+    .cover-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-top: 14px; }
+    .cover-card {
+        background: #fff; border: 1px solid #e2e9f5; border-radius: 10px;
+        padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,.04);
+    }
+    .cover-card .ic { font-size: 21px; display: block; margin-bottom: 8px; }
+    .cover-card h4 { margin: 0 0 6px; font-size: 14px; color: #1a2b3c; }
+    .cover-card p { margin: 0; font-size: 13px; color: #556; line-height: 1.55; }
+    .cover-highlight {
+        background: linear-gradient(135deg, #eef5ff, #f7fbff); border: 1px solid #cfe0fb;
+        border-radius: 12px; padding: 20px 22px 22px; margin-top: 12px;
+    }
+    .cover-highlight > p { font-size: 14px; color: #34506e; margin: 0 0 6px; }
+    .cover-highlight-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 12px; }
+    .cover-highlight .cover-card { background: #fff; }
+    .cover-contact { text-align: center; font-size: 13.5px; color: #556; margin-top: 4px; }
+    .cover-contact a { color: #2b7fff; }
+    .cover-cta-wrap { text-align: center; margin-top: 34px; padding-bottom: 8px; }
+    .cover-cta {
+        background: #27ae60; color: #fff; border: none; padding: 16px 52px; border-radius: 8px;
+        font-size: 17px; font-weight: 700; cursor: pointer; letter-spacing: .5px;
+        box-shadow: 0 4px 14px rgba(39,174,96,0.35); transition: background .2s, transform .15s;
+    }
+    .cover-cta:hover { background: #219a52; transform: translateY(-1px); }
+</style>
+</head>
+<body>
+
+<div class='cover-wrap'><h1 class='cover-title'>Questionnaire de diagnostic des données patrimoniales pour leur agrégation dans une plateforme de données interconnectées</h1><p class='cover-lead'>Nous vous remercions de prendre le temps de participer à ce questionnaire, destiné aux institutions <strong>GLAM</strong> (Galeries, Bibliothèques, Archives et Musées).</p><div class='cover-section'><h3><span class='ic'>🎯</span> Pourquoi ce questionnaire</h3><p>Ce questionnaire permet d'établir un diagnostic de l'état de vos données patrimoniales, en vue de préparer leur intégration dans une plateforme de données interconnectées, qui facilitera le croisement et la mise en relation des informations entre les différentes collections.</p><p>Vos réponses serviront également à adapter cet outil aux besoins spécifiques de chaque institution, et à évaluer quels jeux de données peuvent être inclus dans la plateforme.</p></div><div class='cover-section'><h3><span class='ic'>🔍</span> Ce que ce questionnaire va explorer</h3><div class='cover-topics'><div class='cover-topic'><span class='ic'>🗄️</span><span>Le système de gestion des données</span></div><div class='cover-topic'><span class='ic'>🧩</span><span>Les modèles et la structure des données</span></div><div class='cover-topic'><span class='ic'>📚</span><span>Les vocabulaires et thésaurus employés</span></div><div class='cover-topic'><span class='ic'>🧹</span><span>L'état de curation des données</span></div><div class='cover-topic'><span class='ic'>📋</span><span>Les politiques de gouvernance et procédures associées</span></div></div></div><div class='cover-note'>ℹ️ Ce questionnaire se remplit séparément pour chaque <strong>jeu de données</strong> de votre institution (voir la définition à la question 2).</div><hr class='cover-divider'><div class='cover-section'><h3>Bon à savoir avant de commencer</h3><div class='cover-cards'><div class='cover-card'><span class='ic'>⏱️</span><h4>Durée</h4><p>Variable selon la complexité de vos données. Votre progression est sauvegardée automatiquement : vous pouvez interrompre et reprendre à tout moment.</p></div><div class='cover-card'><span class='ic'>🤝</span><h4>Modalité recommandée</h4><p>À remplir avec l'assistance d'une personne de référence, chargée de guider les répondants dans la compréhension des concepts et la complétion des questions.</p></div><div class='cover-card'><span class='ic'>🔒</span><h4>Confidentialité</h4><p>Toutes vos réponses seront traitées de façon strictement confidentielle.</p></div></div></div><div class='cover-section'><h3><span class='ic'>🎁</span> Ce que vous obtiendrez</h3><div class='cover-highlight'><p>À la fin du questionnaire, vous pourrez télécharger le diagnostic complet de votre jeu de données et consulter une visualisation interactive de ses résultats. Il ne s'agit pas d'un score de qualité, mais d'un diagnostic brut, directement exploitable pour vos décisions de curation et de modélisation.</p><div class='cover-highlight-grid'><div class='cover-card'><span class='ic'>📄</span><h4>4 fichiers CSV</h4><p>Entités, attributs, groupes d'attributs et vue d'ensemble de la structure de votre jeu de données.</p></div><div class='cover-card'><span class='ic'>📊</span><h4>Visualisation interactive</h4><p>Identifiez en un coup d'œil les points forts et les lacunes de votre curation, et évaluez quelles données sont prêtes à être publiées.</p></div></div></div></div><p class='cover-contact'>Une question, une précision ? Écrivez-nous à <a href='mailto:cristobal.barria@geneve.ch'>cristobal.barria@geneve.ch</a></p><div class='cover-cta-wrap'><button class='cover-cta'>Commençons ! →</button></div></div>
+
+</body>
+</html>
